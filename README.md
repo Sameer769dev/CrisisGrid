@@ -354,7 +354,7 @@ Copy the resulting `https://<workspace>--crisisgrid-api-crisisgrid-asgi.modal.ru
 | `GET` | `/api/presets` *(+ `/api/presets/{id}`)* | Presets | **Live** | Pre-loaded global disaster preset catalogue (`urban-flood`, `earthquake-bridge`, `wildfire-helipad`). |
 | `GET` | `/api/usgs/readiness` | USGS | **Live** | USGS Earthquake Hazards Program feed contract (`4.5_day`, `4.5_week`, `significant_month`, `2.5_day`). |
 | `GET` | `/api/usgs/live` | USGS | **Live** | Live global earthquake ingestion (`earthquake.usgs.gov`) normalized into CrisisGrid triage inputs (0 model calls). |
-| `GET` | `/api/runtime/modal` | Runtime | **Live** | Active serverless compute profile (`modal_serverless_cpu`, `render_web_service`, `local_python`) & Modal config. |
+| `GET` | `/api/runtime/modal` | Runtime | **Live** | Active serverless compute profile (`modal_serverless_cpu` or `local_python`) & Modal config. |
 
 ### One-Call End-to-End Pipeline via `curl`
 

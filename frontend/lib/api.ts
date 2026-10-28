@@ -1,15 +1,15 @@
 // Typed client for the CrisisGrid FastAPI backend. No secrets here - MODEL_API_KEY stays backend-only.
-const PROD_RENDER_URL = "https://baralsamir941--crisisgrid-api-crisisgrid-asgi.us-east.modal.run";
+const PROD_MODAL_URL = "https://baralsamir941--crisisgrid-api-crisisgrid-asgi.us-east.modal.run";
 
 export function normalizeBackendUrl(raw?: string): string {
   let cleaned = (raw ?? "").trim().replace(/\/+$/, "");
   cleaned = cleaned.replace(/\/health$/i, "");
-  if (/crisisgrid-api(-m0dp)?\.onrender\.com/i.test(cleaned)) return PROD_RENDER_URL;
+  if (cleaned && !/^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleaned) && !/\.modal\.run$/i.test(cleaned)) return PROD_MODAL_URL;
   if (!cleaned) {
     if (typeof window !== "undefined") {
       const host = window.location.hostname;
       if (host !== "localhost" && host !== "127.0.0.1") {
-        return PROD_RENDER_URL;
+        return PROD_MODAL_URL;
       }
     }
     return "http://localhost:8000";

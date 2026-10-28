@@ -5,7 +5,7 @@ Why Modal for CrisisGrid (AGENTS.md §2 strictly enforced):
   (`https://api.meta.ai/v1`) authenticated via `MODEL_API_KEY`.
 - Modal is used strictly as a high-performance, zero-cold-start CPU serverless
   runtime (`min_containers=1`, 4 vCPUs, 4 GB RAM, 600s request timeout) so judges
-  never hit Render free-tier cold starts (50-90s) or gateway timeouts during the
+  experience 0ms cold starts and zero gateway timeouts during the
   5-model autonomous pipeline (`sam-3.1` x9 -> `muse-voice-transcribe-1.0` ->
   `muse-spark-1.3` -> deterministic Python verifier -> `muse-wonder-1.0` -> `muse-image-1.0`).
 
@@ -35,11 +35,9 @@ MODAL_CONFIG: dict[str, Any] = {
 
 
 def detect_compute_runtime() -> str:
-    """Detect whether the backend is executing inside Modal, Render, or local Python."""
+    """Detect whether the backend is executing inside Modal or local Python."""
     if os.environ.get("MODAL_ENVIRONMENT") or os.environ.get("MODAL_TASK_ID") or os.environ.get("CRISISGRID_RUNTIME") == "modal":
         return "modal_serverless_cpu"
-    if os.environ.get("RENDER") or os.environ.get("RENDER_SERVICE_ID"):
-        return "render_web_service"
     return "local_python"
 
 
