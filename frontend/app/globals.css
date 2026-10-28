@@ -160,3 +160,17 @@ code { background:#fff; border:2px solid var(--ink); padding:0 4px; }
 .sample-meta { padding:8px; display:grid; gap:4px; font-size:11.5px; }
 .sample-meta strong { font-size:12px; line-height:1.25; }
 .sample-actions { display:grid; grid-template-columns:1fr auto; gap:4px; padding:0 8px 8px; }
+
+/* --- Export bar, Before/After clearance banner & print rules --- */
+.export-bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.delta-demo-banner { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:0 14px 10px; padding:10px 14px; border:3px solid var(--ink); background:#fff8c4; box-shadow:4px 4px 0 var(--ink); font-size:12.5px; }
+.delta-preview-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:14px; padding:4px 14px 8px; }
+@media (max-width: 760px) { .delta-preview-grid { grid-template-columns:1fr; } }
+.delta-preview-card { border:3px solid var(--ink); background:var(--paper); padding:10px; box-shadow:4px 4px 0 var(--ink); }
+.delta-preview-img { width:100%; height:170px; object-fit:cover; border:2.5px solid var(--ink); display:block; }
+.delta-preview-empty { height:170px; border:2.5px dashed var(--ink); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; padding:12px; text-align:center; background:#fff; }
+@media print {
+  body { background:#fff; }
+  .control-panel, .export-bar, .day7-grid, .sample-strip { display:none !important; }
+  .panel { box-shadow:none !important; break-inside:avoid; }
+}

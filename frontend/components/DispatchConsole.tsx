@@ -1,7 +1,7 @@
 "use client";
 // Dispatch Action Console - muse-wonder-1.0 units (verified targets only),
-// deterministic guardrail holds, phases, safety brief and muse-image-1.0 briefing card.
-// Held units stay YELLOW with the guardrail reason; nothing unverified is shown as dispatched.
+// deterministic guardrail holds, phases, safety brief, muse-image-1.0 briefing card,
+// and 1-click Incident Action Plan (IAP) export (Markdown, JSON, PNG, Print).
 import type { DispatchResult, VerifyResult } from "@/lib/api";
 
 interface Props {
@@ -15,6 +15,25 @@ interface Props {
   onIncludeCardChange: (v: boolean) => void;
 }
 
+function slugify(text: string): string {
+  return (text || "crisisgrid-dispatch")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "dispatch";
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 export default function DispatchConsole(p: Props) {
   const d = p.dispatch;
   const plan = d?.dispatch;
@@ -22,6 +41,83 @@ export default function DispatchConsole(p: Props) {
   const cleanOperationName = plan?.operation_name
     ? plan.operation_name.replace(/\s*[-–—]?\s*\bday\s*\d+\b/gi, "").trim() || "Verified Emergency Dispatch"
     : "";
+
+  function handleExportMarkdown() {
+    if (!d || !plan) return;
+    const lines: string[] = [
+      `# CRISISGRID — VERIFIED INCIDENT ACTION PLAN (IAP)`,
+      ``,
+      `- **Operation Name:** ${cleanOperationName}`,
+      `- **Generated At:** ${new Date().toISOString()}`,
+      `- **Models:** \`${d.models.dispatch}\` (reasoning effort: \`${d.reasoning.effort}\`) + \`${d.models.briefing_image}\``,
+      `- **Confidence:** ${Math.round((plan.confidence ?? 0) * 100)}%`,
+      `- **Units Summary:** ${plan.summary_counts.units_total} Total (${plan.summary_counts.units_dispatched} Dispatched, ${plan.summary_counts.units_held} Held by Guardrail)`,
+      `- **Verified Corridors:** ${d.input_basis.verified_corridors.join(", ") || "none"}`,
+      `- **Verified Landing Zones:** ${d.input_basis.verified_landing_zones.join(", ") || "none"}`,
+      `- **Excluded Rejected Candidates:** ${d.input_basis.excluded_rejected_candidate_ids.join(", ") || "none"}`,
+      ``,
+      `## 1. Commander Summary`,
+      plan.command_summary,
+      ``,
+      `## 2. Verified Situation Assessment`,
+      plan.situation_assessment,
+      ``,
+      `## 3. Multi-Unit Dispatch Protocol`,
+      `| Unit | Type | Staging | Verified Target | Pri | ETA | Status | Task & Rationale |`,
+      `| :--- | :--- | :--- | :--- | :-: | :-: | :---: | :--- |`,
+      ...plan.units.map((u) => {
+        const target = u.target_candidate_id ? `${u.target_candidate_id} (${u.target_kind})` : "—";
+        const eta = u.eta_minutes_estimate != null ? `${u.eta_minutes_estimate}m` : "TBD";
+        const taskCell = `${u.task}${u.rationale ? ` — *${u.rationale}*` : ""}`.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+        return `| **${u.unit_id}** | ${u.unit_type} | ${u.staging || "—"} | ${target} | #${u.priority_rank ?? "-"} | ${eta} | **${u.dispatch_status.toUpperCase()}** | ${taskCell} |`;
+      }),
+      ``,
+    ];
+    if (plan.phases?.length) {
+      lines.push(`## 4. Operational Phases`);
+      for (const ph of plan.phases) {
+        lines.push(`${ph.phase}. **Phase ${ph.phase} — ${ph.name}:** ${ph.actions.join("; ")}`);
+      }
+      lines.push(``);
+    }
+    if (plan.safety_brief?.length) {
+      lines.push(`## 5. Verified Safety Brief`);
+      for (const s of plan.safety_brief) lines.push(`- ${s}`);
+      lines.push(``);
+    }
+    if (plan.communications_plan) {
+      lines.push(`## 6. Communications Plan`, plan.communications_plan, ``);
+    }
+    lines.push(
+      `## 7. Deterministic Guardrail Audit`,
+      `- **Engine:** \`${d.guardrail.engine}\` (${d.guardrail.model_calls} model calls)`,
+      ...(d.guardrail.actions.length
+        ? d.guardrail.actions.map((a) => `- **${a.unit_id}** (\`${a.action}\`): ${a.detail}`)
+        : [`- All units targeted mathematically verified candidates; 0 guardrail holds triggered.`]),
+      ``
+    );
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+    triggerDownload(blob, `crisisgrid-iap-${slugify(cleanOperationName)}.md`);
+  }
+
+  function handleExportJson() {
+    if (!d) return;
+    const blob = new Blob([JSON.stringify(d, null, 2)], { type: "application/json;charset=utf-8" });
+    triggerDownload(blob, `crisisgrid-dispatch-${slugify(cleanOperationName)}.json`);
+  }
+
+  function handleDownloadCard() {
+    if (!d?.briefing_card || d.briefing_card.status !== "ok") return;
+    if (d.briefing_card.image_base64) {
+      const byteString = atob(d.briefing_card.image_base64);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i);
+      triggerDownload(new Blob([ab], { type: "image/png" }), `crisisgrid-briefing-${slugify(cleanOperationName)}.png`);
+    } else if (d.briefing_card.image_url) {
+      window.open(d.briefing_card.image_url, "_blank", "noopener,noreferrer");
+    }
+  }
 
   return (
     <section className="panel dispatch-panel" aria-label="Dispatch action console">
@@ -31,13 +127,34 @@ export default function DispatchConsole(p: Props) {
       </div>
 
       <div className="dispatch-actions-bar">
-        <button type="button" className="btn btn-dispatch" disabled={!p.canDispatch || p.running} onClick={p.onDispatch}>
-          {p.running ? "WONDER REASONING (HIGH EFFORT)..." : "STEP 4 - DISPATCH (muse-wonder-1.0)"}
-        </button>
-        <label className="check-row">
-          <input type="checkbox" checked={p.includeCard} onChange={(e) => p.onIncludeCardChange(e.target.checked)} />
-          Generate muse-image-1.0 tactical briefing card
-        </label>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center" }}>
+          <button type="button" className="btn btn-dispatch" disabled={!p.canDispatch || p.running} onClick={p.onDispatch}>
+            {p.running ? "WONDER REASONING (HIGH EFFORT)..." : "STEP 4 - DISPATCH (muse-wonder-1.0)"}
+          </button>
+          <label className="check-row">
+            <input type="checkbox" checked={p.includeCard} onChange={(e) => p.onIncludeCardChange(e.target.checked)} />
+            Generate muse-image-1.0 tactical briefing card
+          </label>
+        </div>
+
+        {d && plan && (
+          <div className="export-bar" role="group" aria-label="Export Incident Action Plan">
+            <button type="button" className="btn btn-small" onClick={handleExportMarkdown} title="Download human-readable Markdown Incident Action Plan">
+              EXPORT IAP (.MD)
+            </button>
+            <button type="button" className="btn btn-small" onClick={handleExportJson} title="Download machine-readable verified JSON dispatch protocol">
+              EXPORT JSON (.JSON)
+            </button>
+            {d.briefing_card?.status === "ok" && (
+              <button type="button" className="btn btn-small" onClick={handleDownloadCard} title="Download muse-image-1.0 Tactical Briefing Card PNG">
+                SAVE BRIEFING (.PNG)
+              </button>
+            )}
+            <button type="button" className="btn btn-small" onClick={() => window.print()} title="Print or save PDF of Tactical Incident Action Plan">
+              PRINT / PDF
+            </button>
+          </div>
+        )}
       </div>
 
       {!p.verify && (

@@ -313,6 +313,81 @@ export default function Home() {
     setAfterScan(null); setDelta(null); setClearance(null); setViewMode("live");
   }
 
+  async function handleLoadClearanceDemoPair(): Promise<{ beforeImg: File; afterImg: File; reportText: string; lat: number; lon: number }> {
+    setError(null);
+    const eqBefore = DISASTER_TEST_IMAGES.find((x) => x.id === "earthquake-bridge") ?? DISASTER_TEST_IMAGES[1];
+    const eqAfter = DISASTER_TEST_IMAGES.find((x) => x.id === "earthquake-bridge-cleared") ?? DISASTER_TEST_IMAGES[8];
+    const beforeImg = await fetchPresetFile(eqBefore.image_path, eqBefore.image_filename, "image/jpeg");
+    const afterImg = await fetchPresetFile(eqAfter.image_path, eqAfter.image_filename, "image/jpeg");
+    loadImage(beforeImg);
+    loadAfterImage(afterImg);
+    setActivePresetId(eqBefore.id);
+    setAudioFile(null);
+    setFieldText(eqBefore.field_report);
+    setLatitude(String(eqBefore.latitude));
+    setLongitude(String(eqBefore.longitude));
+    return { beforeImg, afterImg, reportText: eqBefore.field_report, lat: eqBefore.latitude, lon: eqBefore.longitude };
+  }
+
+  async function handleRunFullClearanceDemo() {
+    setDay7Busy(true);
+    setError(null);
+    try {
+      let currentBeforeScan = scan;
+      let currentTriage = triage;
+      let currentVerify = verify;
+      let currentAfterFile = afterFile;
+
+      if (!currentBeforeScan || !currentTriage || !currentAfterFile) {
+        const pair = await handleLoadClearanceDemoPair();
+        currentAfterFile = pair.afterImg;
+        setStageState("scan", "running");
+        currentBeforeScan = await scanHazards(pair.beforeImg);
+        setScan(currentBeforeScan);
+        setStageState("scan", "done");
+
+        setStageState("triage", "running");
+        currentTriage = await triageReport({ audio: null, text: pair.reportText, scanResult: currentBeforeScan, image: pair.beforeImg });
+        setTriage(currentTriage);
+        setStageState("triage", "done");
+
+        setStageState("verify", "running");
+        currentVerify = await verifyCandidates({
+          scan_result: currentBeforeScan,
+          triage_result: currentTriage,
+          latitude: pair.lat,
+          longitude: pair.lon,
+          auto_correct: true,
+          max_correction_attempts: 2,
+        });
+        setVerify(currentVerify);
+        setStageState("verify", currentVerify.dispatch_ready ? "done" : "blocked");
+      }
+
+      const scannedAfter = await scanHazards(currentAfterFile);
+      setAfterScan(scannedAfter);
+      const computedDelta = await computeDelta(currentBeforeScan, scannedAfter);
+      setDelta(computedDelta);
+      const verifiedClearance = await verifyClearance({
+        scanAfter: scannedAfter,
+        triageResult: currentTriage,
+        verificationBefore: currentVerify,
+      });
+      setClearance(verifiedClearance);
+      setVerify(verifiedClearance.verification_result);
+      setScan(scannedAfter);
+      setDispatch(null);
+      setDispatchBlock(null);
+      setStageState("verify", verifiedClearance.dispatch_ready ? "done" : "blocked");
+      setStageState("dispatch", verifiedClearance.dispatch_ready ? "idle" : "blocked");
+      setViewMode("live");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDay7Busy(false);
+    }
+  }
+
   async function handleScanAfter() {
     if (!afterFile) { setError("Upload an AFTER image first."); return; }
     setDay7Busy(true); setError(null);
@@ -620,10 +695,24 @@ export default function Home() {
       </div>
 
       <div className="day7-grid">
-        <DeltaPanel hasBefore={!!scan} afterName={afterFile?.name ?? null} afterScanDone={!!afterScan}
-          delta={delta} clearance={clearance} viewMode={viewMode} busy={day7Busy || busy}
-          onAfterImage={loadAfterImage} onScanAfter={handleScanAfter} onComputeDelta={handleComputeDelta}
-          onVerifyClearance={handleVerifyClearance} onViewMode={setViewMode} />
+        <DeltaPanel
+          hasBefore={!!scan}
+          beforeUrl={imageUrl}
+          afterName={afterFile?.name ?? null}
+          afterUrl={afterUrl}
+          afterScanDone={!!afterScan}
+          delta={delta}
+          clearance={clearance}
+          viewMode={viewMode}
+          busy={day7Busy || busy}
+          onAfterImage={loadAfterImage}
+          onScanAfter={handleScanAfter}
+          onComputeDelta={handleComputeDelta}
+          onVerifyClearance={handleVerifyClearance}
+          onViewMode={setViewMode}
+          onLoadClearanceDemoPair={() => { void handleLoadClearanceDemoPair(); }}
+          onRunFullClearanceDemo={() => { void handleRunFullClearanceDemo(); }}
+        />
         <SectorPanel sectors={sectorSnapshots} rank={sectorRank} busy={day7Busy}
           name={sectorName} onName={setSectorName} onSave={handleSaveSector} onRank={handleRankSectors}
           onLoad={handleLoadSector} onDelete={(id) => setSectorStore((prev) => prev.filter((s) => s.id !== id))}
