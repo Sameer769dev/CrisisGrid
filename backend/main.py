@@ -112,7 +112,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN, "http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -127,7 +127,7 @@ class SamParseRequest(BaseModel):
 def health() -> dict:
     return {
         "status": "ok",
-        "service": "crisisgrid-backend",
+        "service": "CrisisGrid Engine",
         "version": app.version,
         "meta_api_base_url": META_API_BASE_URL,
         "model_api_key_configured": model_api_key_configured(),
