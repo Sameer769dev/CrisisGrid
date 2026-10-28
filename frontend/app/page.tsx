@@ -9,7 +9,7 @@ import TacticalCanvas, { type CanvasCorridor, type CanvasZone, type InspectItem 
 import AgentTrace from "@/components/AgentTrace";
 import DispatchConsole from "@/components/DispatchConsole";
 import {
-  computeDelta, fetchHealth, fetchPresets, fetchUsgsLive, rankSectors, runCrisisGrid, runDispatch, scanHazards, triageReport,
+  computeDelta, fetchHealth, fetchPresets, fetchUsgsLive, rankSectors, runDispatch, scanHazards, triageReport,
   verifyCandidates, verifyClearance,
   type ClearanceResult, type DeltaResult, type DispatchResult, type HealthStatus,
   type ScanDetection, type ScanHazardsResult, type ScanTraceEntry, type SectorRankResult,
@@ -73,6 +73,17 @@ export default function Home() {
   const [showZones, setShowZones] = useState(true);
   const [selected, setSelected] = useState<InspectItem>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [telemetryStep, setTelemetryStep] = useState<string | null>(null);
+  const [elapsedMs, setElapsedMs] = useState<number>(0);
+
+  useEffect(() => {
+    const anyRunning = Object.values(stage).some((s) => s === "running") || day7Busy;
+    if (!anyRunning) return;
+    const t0 = performance.now();
+    setElapsedMs(0);
+    const id = window.setInterval(() => setElapsedMs(performance.now() - t0), 100);
+    return () => window.clearInterval(id);
+  }, [stage, day7Busy]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -208,14 +219,64 @@ export default function Home() {
   }
 
   async function runPipelineCore(img: File, reportText: string, audio: File | null, lat: number | null, lon: number | null) {
-    setStage({ scan: "running", triage: "running", verify: "running", dispatch: "running", pipeline: "running" });
     setError(null);
+    setScan(null); setTriage(null); setVerify(null); setDispatch(null); setDispatchBlock(null); setSelected(null);
+    setStage({ scan: "running", triage: "idle", verify: "idle", dispatch: "idle", pipeline: "running" });
+    setTelemetryStep("STAGE 1/4 · PARALLEL SAM-3.1 SPATIAL SEGMENTATION (9 CONCEPTS @ api.meta.ai/v1)...");
     try {
-      const r = await runCrisisGrid({ image: img, audio, text: reportText.trim() || null, latitude: lat, longitude: lon, autoCorrect: true, maxCorrectionAttempts: 3, includeBriefingCard: includeCard });
-      setScan(r.scan); setTriage(r.triage); setVerify(r.verification); setDispatch(r.dispatch); setDispatchBlock(r.dispatch_block); setSelected(null);
-      setStage({ scan: "done", triage: "done", verify: r.verification.dispatch_ready ? "done" : "blocked", dispatch: r.dispatch ? "done" : "blocked", pipeline: "done" });
+      // Stage 1: Parallel sam-3.1 segmentation -> immediately renders masks on TacticalCanvas
+      const scanRes = await scanHazards(img);
+      setScan(scanRes);
+      setStage((p) => ({ ...p, scan: "done", triage: "running" }));
+
+      // Stage 2: Voice ASR + muse-spark-1.3 multimodal triage -> immediately draws YELLOW candidates
+      setTelemetryStep("STAGE 2/4 · MUSE-VOICE-TRANSCRIBE-1.0 + MUSE-SPARK-1.3 MULTIMODAL TRIAGE...");
+      const triageRes = await triageReport({ audio, text: reportText.trim() || null, scanResult: scanRes, image: img });
+      setTriage(triageRes);
+      setStage((p) => ({ ...p, triage: "done", verify: "running" }));
+
+      // Stage 3: Deterministic Python geometry verifier + OSM Overpass + Spark bounded re-route loop
+      setTelemetryStep("STAGE 3/4 · PYTHON GEOMETRY VERIFIER (LIANG-BARSKY IoU) + OSM OVERPASS + SPARK RE-ROUTE...");
+      const verifyRes = await verifyCandidates({
+        scan_result: scanRes,
+        triage_result: triageRes,
+        latitude: lat,
+        longitude: lon,
+        auto_correct: true,
+        max_correction_attempts: 3,
+      });
+      setVerify(verifyRes);
+      if (!verifyRes.dispatch_ready) {
+        setDispatchBlock({
+          status: "no_verified_candidates",
+          message: "No candidate survived deterministic verification (≤10% hazard contact required), so muse-wonder-1.0 was NOT called.",
+        });
+        setStage({ scan: "done", triage: "done", verify: "blocked", dispatch: "blocked", pipeline: "done" });
+        setTelemetryStep(null);
+        return;
+      }
+      setStage((p) => ({ ...p, verify: "done", dispatch: "running" }));
+
+      // Stage 4: muse-wonder-1.0 (high reasoning effort) + deterministic guardrail + muse-image-1.0 briefing card
+      setTelemetryStep("STAGE 4/4 · MUSE-WONDER-1.0 (HIGH EFFORT) DISPATCH + MUSE-IMAGE-1.0 BRIEFING CARD...");
+      const dispatchRes = await runDispatch({
+        verification_result: verifyRes,
+        triage_result: triageRes,
+        include_briefing_card: includeCard,
+      });
+      setDispatch(dispatchRes);
+      setDispatchBlock(null);
+      setStage({ scan: "done", triage: "done", verify: "done", dispatch: "done", pipeline: "done" });
+      setTelemetryStep(null);
     } catch (e) {
-      setStage({ scan: "error", triage: "error", verify: "error", dispatch: "error", pipeline: "error" });
+      setTelemetryStep(null);
+      setStage((prev) => ({
+        scan: prev.scan === "running" ? "error" : prev.scan,
+        triage: prev.triage === "running" ? "error" : prev.triage,
+        verify: prev.verify === "running" ? "error" : prev.verify,
+        dispatch: prev.dispatch === "running" ? "error" : prev.dispatch,
+        pipeline: "error",
+      }));
       setError(e instanceof Error ? e.message : String(e));
     }
   }
@@ -561,6 +622,21 @@ export default function Home() {
           {verify && <span className="stage-chip">VERIFIER: {verify.status.toUpperCase()} - {verify.final_verification.summary.verified} VERIFIED / {verify.final_verification.summary.rejected} REJECTED</span>}
           {triage && <span className="stage-chip">TRIAGE: {triage.triage.severity.toUpperCase()} - URGENCY {triage.triage.urgency_score}/100</span>}
         </div>
+        {(busy || day7Busy) && (
+          <div className="telemetry-hud" role="status" aria-live="polite">
+            <div className="telemetry-hud-top">
+              <span className="telemetry-pulse">● LIVE META MODEL API EXECUTION</span>
+              <strong>{telemetryStep ?? "EXECUTING TACTICAL STAGE..."}</strong>
+              <span className="telemetry-timer">{(elapsedMs / 1000).toFixed(1)}s ELAPSED</span>
+            </div>
+            <div className="telemetry-bar-grid">
+              <div className={`telemetry-seg seg-${stage.scan}`}>1. SAM-3.1 (9x PARALLEL)</div>
+              <div className={`telemetry-seg seg-${stage.triage}`}>2. VOICE + SPARK-1.3</div>
+              <div className={`telemetry-seg seg-${stage.verify}`}>3. PYTHON VERIFIER + OSM</div>
+              <div className={`telemetry-seg seg-${stage.dispatch}`}>4. WONDER-1.0 + IMAGE-1.0</div>
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="grid">
