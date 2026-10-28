@@ -46,6 +46,7 @@ export interface HealthStatus {
   status: string;
   service: string;
   version: string;
+  compute_runtime?: string;
   meta_api_base_url: string;
   model_api_key_configured: boolean;
   models: Record<string, string>;
@@ -674,10 +675,58 @@ export async function rankSectors(sectors: Record<string, unknown>[], signal?: A
   return res.json();
 }
 
-// Day 8 API client (appended): preset catalogue. Static metadata only.
+// Global scenario preset catalogue + Live USGS seismic telemetry client.
 export interface PresetsResult { status: string; day: 8; count: number; presets: import("./presets").CrisisPreset[]; honesty_note: string; next_step: string }
 export async function fetchPresets(signal?: AbortSignal): Promise<PresetsResult> {
   const res = await apiFetch(`/api/presets`, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`Backend /api/presets failed: ${res.status}`);
+  return res.json();
+}
+
+export interface UsgsEvent {
+  event_id: string;
+  title: string;
+  place: string;
+  magnitude: number | null;
+  depth_km: number | null;
+  latitude: number;
+  longitude: number;
+  time_epoch_ms: number | null;
+  time_iso: string | null;
+  alert_level: string | null;
+  tsunami_warning: boolean;
+  felt_reports: number | null;
+  mmi_intensity: number | null;
+  usgs_url: string | null;
+  severity_estimate: string;
+  urgency_estimate: number;
+  recommended_preset_id: string;
+  field_report: string;
+}
+
+export interface UsgsLiveResult {
+  status: "ok";
+  provider: string;
+  feed: string;
+  feed_url: string;
+  feed_title: string;
+  model_calls: 0;
+  min_magnitude: number;
+  total_matching: number;
+  count: number;
+  events: UsgsEvent[];
+  latency_ms: number;
+  trace: ScanTraceEntry[];
+  next_step: string;
+}
+
+export async function fetchUsgsLive(feed = "4.5_day", minMagnitude = 4.5, limit = 6, signal?: AbortSignal): Promise<UsgsLiveResult> {
+  const qs = new URLSearchParams({ feed, min_magnitude: String(minMagnitude), limit: String(limit) });
+  const res = await apiFetch(`/api/usgs/live?${qs.toString()}`, { signal, cache: "no-store" });
+  if (!res.ok) {
+    let d = "";
+    try { d = JSON.stringify(await res.json()); } catch { /* status only */ }
+    throw new Error(`Backend /api/usgs/live failed: ${res.status}${d ? " " + d : ""}`);
+  }
   return res.json();
 }

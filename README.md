@@ -272,7 +272,7 @@ cp .env.example .env
 # MODEL_API_KEY=your_meta_model_api_key_here
 ```
 
-### 2. Run All 7 Offline Verification Suites (215/215 Assertions — No API Key or Network Needed)
+### 2. Run All 8 Offline Verification Suites (236/236 Assertions — No API Key or Network Needed)
 
 ```bash
 pip install -r backend/requirements.txt
@@ -284,6 +284,7 @@ python backend/test_verifiable_corridor_engine.py  # Verifier: Pure Python geome
 python backend/test_wonder_commander.py            # Dispatch: Pre/post dispatch guardrails & briefing card prompt (55 assertions)
 python backend/test_damage_delta.py                # Delta: Before/after IoU delta, clearance flip & sector rank (24 assertions)
 python backend/test_presets.py                     # Presets: Global preset catalogue & asset integrity (25 assertions)
+python backend/test_usgs_and_modal.py              # USGS & Modal: Live USGS telemetry normalizer & Modal CPU runtime (21 assertions)
 ```
 
 ### 3. Run Live Meta Model API Smoke Tests (`--live`, Requires `MODEL_API_KEY`)
@@ -314,6 +315,19 @@ npm run dev
 
 Open **`http://localhost:3000`** in your browser (Swagger API docs available at **`http://localhost:8000/docs`**).
 
+### 5. Production Zero-Cold-Start Deployment on Modal.com (`backend/modal_app.py`)
+
+To eliminate free-tier cold starts and run the deterministic geometry verifier on **4 dedicated vCPUs / 4 GB RAM (`min_containers=1`, `gpu=None`)** while keeping **100% of AI inference on `https://api.meta.ai/v1`**:
+
+```bash
+pip install modal
+modal setup
+modal secret create crisisgrid-secrets MODEL_API_KEY=your_meta_model_api_key_here
+modal deploy backend/modal_app.py
+```
+
+Copy the resulting `https://<workspace>--crisisgrid-api-crisisgrid-asgi.modal.run` URL into Vercel's `NEXT_PUBLIC_BACKEND_URL` environment variable.
+
 ---
 
 ## 🔌 Complete API Reference
@@ -338,6 +352,9 @@ Open **`http://localhost:3000`** in your browser (Swagger API docs available at 
 | `POST` | `/api/delta/verify-clearance` | Delta | **Live** | Re-verifies candidate corridors/LZs against the post-clearance scan (0 model calls). |
 | `POST` | `/api/sectors/rank` | Sectors | **Live** | Deterministic $0\text{–}100$ multi-sector triage priority ranking (`dispatch_now`, `clearance_then_reverify`, etc.). |
 | `GET` | `/api/presets` *(+ `/api/presets/{id}`)* | Presets | **Live** | Pre-loaded global disaster preset catalogue (`urban-flood`, `earthquake-bridge`, `wildfire-helipad`). |
+| `GET` | `/api/usgs/readiness` | USGS | **Live** | USGS Earthquake Hazards Program feed contract (`4.5_day`, `4.5_week`, `significant_month`, `2.5_day`). |
+| `GET` | `/api/usgs/live` | USGS | **Live** | Live global earthquake ingestion (`earthquake.usgs.gov`) normalized into CrisisGrid triage inputs (0 model calls). |
+| `GET` | `/api/runtime/modal` | Runtime | **Live** | Active serverless compute profile (`modal_serverless_cpu`, `render_web_service`, `local_python`) & Modal config. |
 
 ### One-Call End-to-End Pipeline via `curl`
 

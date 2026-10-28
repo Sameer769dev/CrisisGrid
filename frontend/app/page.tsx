@@ -9,11 +9,11 @@ import TacticalCanvas, { type CanvasCorridor, type CanvasZone, type InspectItem 
 import AgentTrace from "@/components/AgentTrace";
 import DispatchConsole from "@/components/DispatchConsole";
 import {
-  computeDelta, fetchHealth, fetchPresets, rankSectors, runCrisisGrid, runDispatch, scanHazards, triageReport,
+  computeDelta, fetchHealth, fetchPresets, fetchUsgsLive, rankSectors, runCrisisGrid, runDispatch, scanHazards, triageReport,
   verifyCandidates, verifyClearance,
   type ClearanceResult, type DeltaResult, type DispatchResult, type HealthStatus,
   type ScanDetection, type ScanHazardsResult, type ScanTraceEntry, type SectorRankResult,
-  type TriageResult, type VerifyResult,
+  type TriageResult, type UsgsEvent, type UsgsLiveResult, type VerifyResult,
 } from "@/lib/api";
 import { DeltaPanel, SectorPanel, type SectorSnapshot } from "@/components/Day7Panels";
 import PresetPanel from "@/components/PresetPanel";
@@ -56,6 +56,8 @@ export default function Home() {
   const [presets, setPresets] = useState<CrisisPreset[]>(FALLBACK_PRESETS);
   const [presetSource, setPresetSource] = useState<"api" | "fallback">("fallback");
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [usgs, setUsgs] = useState<UsgsLiveResult | null>(null);
+  const [usgsBusy, setUsgsBusy] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -92,8 +94,9 @@ export default function Home() {
     if (delta) out.push(...delta.trace);
     if (clearance) out.push(...clearance.trace);
     if (sectorRank) out.push(...sectorRank.trace);
+    if (usgs) out.push(...usgs.trace);
     return out;
-  }, [scan, triage, verify, dispatch, delta, clearance, sectorRank]);
+  }, [scan, triage, verify, dispatch, delta, clearance, sectorRank, usgs]);
 
   const canvasDetections: ScanDetection[] = useMemo(() => {
     if (viewMode === "delta" && delta) {
@@ -259,6 +262,27 @@ export default function Home() {
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
   }
 
+  async function handleFetchUsgs(feed = "4.5_day") {
+    setUsgsBusy(true); setError(null);
+    try { const r = await fetchUsgsLive(feed, 4.5, 6); setUsgs(r); }
+    catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+    finally { setUsgsBusy(false); }
+  }
+
+  async function handleLoadUsgsEvent(ev: UsgsEvent, autoRun: boolean) {
+    setError(null);
+    const eqPreset = presets.find((p) => p.id === ev.recommended_preset_id) ?? presets[1] ?? FALLBACK_PRESETS[1];
+    try {
+      const img = await fetchPresetFile(eqPreset.image_path, eqPreset.image_filename, "image/jpeg");
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+      setImageFile(img); setImageUrl(URL.createObjectURL(img));
+      setAudioFile(null); setFieldText(ev.field_report);
+      setLatitude(String(ev.latitude)); setLongitude(String(ev.longitude));
+      setAfterScan(null); setDelta(null); setClearance(null); setActivePresetId(ev.event_id);
+      if (autoRun) await runPipelineCore(img, ev.field_report, null, ev.latitude, ev.longitude);
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+  }
+
 
   // ---- Damage delta & multi-sector handlers ----------------------------- //
   function loadAfterImage(file: File | null) {
@@ -351,7 +375,7 @@ export default function Home() {
           <p>AUTONOMOUS DISASTER TRIAGE - INFRASTRUCTURE ASSESSMENT - EMERGENCY DISPATCH</p>
         </div>
         <div className="status-box">
-          <div>BACKEND: {backendDown ? "OFFLINE" : health ? `ONLINE (v${health.version.replace(/-day\d+$/i, "")})` : "CHECKING..."}</div>
+          <div>BACKEND: {backendDown ? "OFFLINE" : health ? `ONLINE (v${health.version.replace(/-day\d+$/i, "")}${health.compute_runtime ? " · " + health.compute_runtime.toUpperCase() : ""})` : "CHECKING..."}</div>
           <div>MODEL_API_KEY: {health ? (keyReady ? "CONFIGURED" : "NOT SET") : "-"}</div>
           <div>API: api.meta.ai/v1 - ONLY INFERENCE PROVIDER</div>
         </div>
@@ -451,7 +475,7 @@ export default function Home() {
 
       <div style={{ marginTop: 18 }}>
         <PresetPanel presets={presets} busy={busy || day7Busy} activeId={activePresetId} source={presetSource}
-          onRun={handleRunPreset} onLoad={handleLoadPreset} />
+          onRun={handleRunPreset} onLoad={handleLoadPreset} usgs={usgs} usgsBusy={usgsBusy} onFetchUsgs={handleFetchUsgs} onLoadUsgsEvent={handleLoadUsgsEvent} />
       </div>
 
       <div className="day7-grid">

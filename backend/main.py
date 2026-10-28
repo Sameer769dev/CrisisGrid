@@ -61,6 +61,8 @@ try:  # works as `uvicorn backend.main:app` from repo root
     )
     from backend.services.damage_delta import compute_damage_delta, rank_sectors, verify_clearance
     from backend.services.presets import get_preset, list_presets
+    from backend.services.usgs_feed import USGS_FEEDS, UsgsUpstreamError, fetch_usgs_live_events
+    from backend.modal_app import MODAL_CONFIG, detect_compute_runtime
     from backend.services.wonder_commander import (
         BRIEFING_MODEL,
         DISPATCH_MODEL,
@@ -92,6 +94,8 @@ except ImportError:  # works as `uvicorn main:app` from backend/
     )
     from services.damage_delta import compute_damage_delta, rank_sectors, verify_clearance
     from services.presets import get_preset, list_presets
+    from services.usgs_feed import USGS_FEEDS, UsgsUpstreamError, fetch_usgs_live_events
+    from modal_app import MODAL_CONFIG, detect_compute_runtime
     from services.wonder_commander import (
         BRIEFING_MODEL,
         DISPATCH_MODEL,
@@ -129,6 +133,7 @@ def health() -> dict:
         "status": "ok",
         "service": "CrisisGrid Engine",
         "version": app.version,
+        "compute_runtime": detect_compute_runtime(),
         "meta_api_base_url": META_API_BASE_URL,
         "model_api_key_configured": model_api_key_configured(),
         "models": {
@@ -641,3 +646,42 @@ def preset_endpoint(preset_id: str) -> dict:
     if preset is None:
         raise HTTPException(status_code=404, detail={"status": "preset_not_found", "message": f"Unknown preset '{preset_id}'. GET /api/presets lists the available presets."})
     return {"status": "ok", "day": 8, "preset": preset}
+
+
+@app.get("/api/usgs/readiness")
+def usgs_readiness() -> dict:
+    """USGS seismic telemetry contract (permitted free external data source in AGENTS.md §2)."""
+    return {
+        "provider": "USGS Earthquake Hazards Program (earthquake.usgs.gov)",
+        "feeds": USGS_FEEDS,
+        "model_calls": 0,
+        "compliance": "Permitted free non-AI external data source (AGENTS.md §2). Coordinates feed OpenStreetMap Overpass facility lookup.",
+    }
+
+
+@app.get("/api/usgs/live")
+async def usgs_live_endpoint(
+    feed: str = "4.5_day",
+    min_magnitude: float = 4.5,
+    limit: int = 6,
+) -> dict:
+    """Fetch real-time global earthquakes from USGS and normalize into CrisisGrid triage inputs."""
+    try:
+        return await fetch_usgs_live_events(feed=feed, min_magnitude=min_magnitude, limit=limit)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"status": "invalid_usgs_request", "message": str(exc)}) from exc
+    except UsgsUpstreamError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"status": "usgs_upstream_failed", "upstream_status": exc.status_code, "message": str(exc)},
+        ) from exc
+
+
+@app.get("/api/runtime/modal")
+def modal_runtime_status() -> dict:
+    """Modal.com serverless CPU deployment profile & active compute runtime."""
+    return {
+        "status": "ok",
+        "active_runtime": detect_compute_runtime(),
+        "modal_config": MODAL_CONFIG,
+    }
