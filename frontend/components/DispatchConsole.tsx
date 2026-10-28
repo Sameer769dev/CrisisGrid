@@ -1,5 +1,5 @@
 "use client";
-// Day 6: Dispatch Action Console - muse-wonder-1.0 units (verified targets only),
+// Dispatch Action Console - muse-wonder-1.0 units (verified targets only),
 // deterministic guardrail holds, phases, safety brief and muse-image-1.0 briefing card.
 // Held units stay YELLOW with the guardrail reason; nothing unverified is shown as dispatched.
 import type { DispatchResult, VerifyResult } from "@/lib/api";

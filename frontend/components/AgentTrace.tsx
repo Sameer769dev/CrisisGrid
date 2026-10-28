@@ -1,5 +1,5 @@
 "use client";
-// Day 6: Live Verifiable Agent Trace - every proposal, verification, rejection
+// Live Verifiable Agent Trace - every proposal, verification, rejection
 // and re-route from scan/triage/verify/dispatch, in arrival order. Read-only audit log.
 import { useEffect, useRef, useState } from "react";
 import type { ScanTraceEntry } from "@/lib/api";

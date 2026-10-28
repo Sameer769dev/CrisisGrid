@@ -214,7 +214,7 @@ async def main() -> int:
     main_module.run_triage = fake_run_triage
     try:
         client = TestClient(main_module.app, raise_server_exceptions=False)
-        expect(str(client.get("/health").json()["version"]).startswith("0."), "/health responds with a version")
+        expect(str(client.get("/health").json()["version"]) == "1.0.0", "/health responds with v1.0.0 version")
         expect(client.get("/api/triage/readiness").status_code == 200, "triage readiness endpoint live")
         r = client.post("/api/triage/text", json={"text": "typed report", "scan_id": "s9"})
         expect(r.status_code == 200 and r.json()["echo_text"] == "typed report", "POST /api/triage/text works")

@@ -1,7 +1,7 @@
 "use client";
-// Day 7 panels: Before/After Damage Delta + post-clearance re-verification,
+// Before/After Damage Delta + post-clearance re-verification,
 // and Multi-Sector Triage ranking. Both engines are deterministic Python with
-// zero model calls; a blocked corridor flips green only via the Day 4
+// zero model calls; a blocked corridor flips green only via the deterministic geometry
 // verifier re-run on the AFTER scan (handled in page state).
 import type { ClearanceResult, DeltaResult, SectorRankResult } from "@/lib/api";
 
@@ -24,7 +24,7 @@ export function DeltaPanel(p: DeltaProps) {
   const d = p.delta;
   return (
     <section className="panel" aria-label="Before after damage delta">
-      <div className="panel-head"><span>BEFORE / AFTER DAMAGE DELTA</span><span className="tag tag-yellow">DAY 7 - 0 MODEL CALLS</span></div>
+      <div className="panel-head"><span>BEFORE / AFTER DAMAGE DELTA</span><span className="tag tag-yellow">DETERMINISTIC ENGINE · 0 MODEL CALLS</span></div>
       <p className="panel-note">BEFORE = the current scan on the tactical map. Upload the AFTER frame (post-disaster, or post-debris-clearance), scan it, then compare. The delta highlights change only - it <strong>never</strong> verifies a route.</p>
       <div className="delta-controls">
         <label className="btn btn-file">AFTER IMAGE<input type="file" accept="image/*" hidden onChange={(e) => p.onAfterImage(e.target.files?.[0] ?? null)} /></label>
@@ -59,7 +59,7 @@ export function DeltaPanel(p: DeltaProps) {
       )}
       {p.clearance && (
         <div className="dispatch-body">
-          <h4 className="subhead">POST-CLEARANCE RE-VERIFICATION (DAY 4 VERIFIER ON AFTER SCAN)</h4>
+          <h4 className="subhead">POST-CLEARANCE RE-VERIFICATION (DETERMINISTIC GEOMETRY VERIFIER ON AFTER SCAN)</h4>
           <p className="panel-note">Verdict: <strong>{p.clearance.verdict.replaceAll("_", " ").toUpperCase()}</strong> - flipped to verified: [{p.clearance.flipped_to_verified.join(", ") || "none"}]; still blocked: [{p.clearance.still_blocked.join(", ") || "none"}]. Main map + dispatch state now use the AFTER verification.</p>
           <div className="table-wrap"><table className="unit-table">
             <thead><tr><th>CANDIDATE</th><th>BEFORE</th><th>AFTER</th><th>HAZARD BEFORE</th><th>HAZARD AFTER</th><th>FLIP</th></tr></thead>
@@ -87,8 +87,8 @@ interface SectorProps {
 export function SectorPanel(p: SectorProps) {
   return (
     <section className="panel" aria-label="Multi sector triage">
-      <div className="panel-head"><span>MULTI-SECTOR TRIAGE</span><span className="tag tag-yellow">DAY 7 - DETERMINISTIC RANK</span></div>
-      <p className="panel-note">Save each scanned sector, then rank all sectors for dispatch priority. Score = urgency x0.40 + severity (max 25) + people (max 15) + hazard footprint (max 10) + access pressure (max 10). Ranking orders work - dispatch still requires Day 4-verified candidates in that sector.</p>
+      <div className="panel-head"><span>MULTI-SECTOR TRIAGE</span><span className="tag tag-yellow">DETERMINISTIC PRIORITY MATRIX</span></div>
+      <p className="panel-note">Save each scanned sector, then rank all sectors for dispatch priority. Score = urgency x0.40 + severity (max 25) + people (max 15) + hazard footprint (max 10) + access pressure (max 10). Ranking orders work - dispatch still requires geometrically verified candidates in that sector.</p>
       <div className="delta-controls">
         <input className="field-input inline-input sector-name" value={p.name} onChange={(e) => p.onName(e.target.value)} placeholder="Sector name (e.g. Old Town)" aria-label="Sector name" />
         <button type="button" className="btn" disabled={!p.canSave} onClick={p.onSave}>SAVE CURRENT AS SECTOR</button>

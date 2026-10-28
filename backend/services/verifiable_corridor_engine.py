@@ -1073,7 +1073,7 @@ async def run_verification_loop(
                                 else "no_candidates_to_verify" if final_status == "no_candidates"
                                 else "not_verified_rejected_or_partial"),
         "dispatch_ready": final_status == "verified",
-        "next_step": ("Day 5: only verified_candidates may flow into muse-wonder-1.0 dispatch."
+        "next_step": ("Only verified_candidates may flow into muse-wonder-1.0 dispatch."
                       if final_status == "verified" else
                       "Do NOT dispatch rejected/unverified candidates. Re-plan or wait for a new scan."),
     }

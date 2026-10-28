@@ -475,7 +475,7 @@ def sanitize_dispatch_plan(
             else:
                 guardrail_actions.append({
                     "unit_id": unit_id, "action": "held_unverified_target",
-                    "detail": (f"Unit '{unit_id}' targeted '{target}', which the Day 4 verifier "
+                    "detail": (f"Unit '{unit_id}' targeted '{target}', which the deterministic geometry verifier "
                                "did not verify. Assignment HELD by deterministic guardrail."),
                 })
                 unit["requested_target_candidate_id"] = target
@@ -724,7 +724,7 @@ async def run_dispatch(
         "total_latency_ms": round((time.perf_counter() - started) * 1000, 1),
         # Trust law: dispatch flows from Day 4-verified state only.
         "verification_status": "dispatch_from_verified_candidates_only",
-        "next_step": "Day 6: render dispatch + briefing card in the Tactical Command UI (Dispatch Action Console).",
+        "next_step": "Render dispatch protocol and briefing card in the Tactical Command UI (Dispatch Action Console).",
     }
 
 
@@ -850,7 +850,7 @@ async def run_crisisgrid_pipeline(
         "verification_status": (
             "verified_dispatch_issued" if dispatch is not None
             else "no_verified_candidates_nothing_dispatched"),
-        "next_step": ("Day 6: render scan overlays, agent trace, and dispatch console in the "
+        "next_step": ("Render scan overlays, agent trace, and dispatch console in the "
                       "Tactical Command UI." if dispatch is not None else
                       "Re-plan candidates or supply a new scan; dispatch stays locked until "
                       "the deterministic verifier verifies at least one candidate."),

@@ -236,7 +236,7 @@ async def main() -> int:
     main_module.run_verification_loop = fake_loop
     try:
         client = TestClient(main_module.app, raise_server_exceptions=False)
-        expect(client.get("/health").json()["version"] == "0.8.0-day8", "/health reports day5 version")
+        expect(client.get("/health").json()["version"] == "1.0.0", "/health reports v1.0.0 version")
         expect(client.get("/api/verify/readiness").status_code == 200, "verify readiness live")
         r = client.post("/api/verify", json={"scan_result": SCAN, "candidate_evacuation_corridors": []})
         expect(r.status_code == 200 and r.json()["status"] == "verified", "POST /api/verify works")

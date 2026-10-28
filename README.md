@@ -86,7 +86,7 @@ flowchart LR
     V -- "REJECTED (Red): Path Crosses Hazard (Bounded Re-Route)" --> S
     V -- "VERIFIED ONLY (Green): Double Guardrail" --> W["muse-wonder-1.0 (High-Effort Multi-Unit Dispatch)"]
     W --> I["muse-image-1.0 (Tactical Field Briefing Card)"]
-    P --> D["Day 7 Damage Delta and Post-Clearance Re-Verifier"]
+    P --> D["Damage Delta and Post-Clearance Re-Verifier"]
     D --> V
     V --> UI["Next.js Tactical Command UI (Canvas, Trace, Console, Sector Rank)"]
     W --> UI
@@ -135,7 +135,7 @@ sequenceDiagram
     API-->>UI: Full Pipeline Payload + Concatenated Verifiable Agent Trace
 ```
 
-### 3. Day 7 Before/After Damage Delta, Post-Clearance Flip & Multi-Sector Triage
+### 3. Before/After Damage Delta, Post-Clearance Flip & Multi-Sector Triage
 
 ```mermaid
 flowchart TD
@@ -144,7 +144,7 @@ flowchart TD
     Delta --> NewH["NEW Hazards and LOST Safe Zones (Red)"]
     Delta --> ClrH["CLEARED Hazards and NEW Safe Zones (Green)"]
     Delta --> PerH["PERSISTENT Detections (Yellow)"]
-    AScan --> ClrVer["verify_clearance() (Re-runs Day 4 Verifier on AFTER Scan Only)"]
+    AScan --> ClrVer["verify_clearance() (Re-runs Geometry Verifier on AFTER Scan Only)"]
     Cand["Previously Blocked Candidates"] --> ClrVer
     ClrVer -- "Debris Removed and All Invariants Pass" --> Flip["Status Flips: REJECTED to VERIFIED (Green, dispatch_ready = true)"]
     ClrVer -- "Hazard Contact Still Over 10%" --> Stay["Remains REJECTED (Red, No False Flip)"]
@@ -161,7 +161,7 @@ CrisisGrid uses **100% official Meta Model API inference (`https://api.meta.ai/v
 | :-: | :--- | :--- | :--- | :--- | :--- |
 | **1** | **`sam-3.1`** | Pixel-precise hazard & passable infrastructure segmentation | `POST /v1/responses`<br/>(`client.responses.create`) | **One short concrete noun phrase per request.** 9 canonical concepts fanned out concurrently via `asyncio.gather`. Parsed exclusively by deterministic regex (`sam_parser.py`). | [`sam_hazard_scanner.py`](./backend/services/sam_hazard_scanner.py)<br/>[`sam_parser.py`](./backend/services/sam_parser.py) |
 | **2** | **`muse-voice-transcribe-1.0`** | Emergency responder radio voice transcription | `POST /v1/asr/transcribe`<br/>(`multipart/form-data`) | `request={"mode":"ENDPOINTING","model":"muse-voice-transcribe-1.0","audioEncoding":"WAV"}`. Locally validates RIFF/WAVE header (mono `s16le` @ `16000` or `24000` Hz) prior to network call. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py) |
-| **3** | **`muse-spark-1.3`** | Multimodal damage/urgency triage & closed-loop corridor re-routing | `POST /v1/responses`<br/>(`role="developer"`) | Fuses transcript + image + mask-stripped `sam-3.1` summary into JSON priorities & `unverified_candidate` routes. Re-routes rejected candidates when forced by the Day 4 verifier. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py)<br/>[`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) |
+| **3** | **`muse-spark-1.3`** | Multimodal damage/urgency triage & closed-loop corridor re-routing | `POST /v1/responses`<br/>(`role="developer"`) | Fuses transcript + image + mask-stripped `sam-3.1` summary into JSON priorities & `unverified_candidate` routes. Re-routes rejected candidates when forced by the deterministic verifier. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py)<br/>[`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) |
 | **4** | **`muse-wonder-1.0`** | High-effort autonomous multi-unit rescue dispatch orchestration | `POST /v1/responses`<br/>(`reasoning={"effort":"high"}`) | Pre-gated so **only verified** corridors/LZs enter the prompt. Post-gated by a deterministic guardrail (`sanitize_dispatch_plan`) that holds any unit targeting an unverified ID. | [`wonder_commander.py`](./backend/services/wonder_commander.py) |
 | **5** | **`muse-image-1.0`** | Visual tactical field briefing card & test preset scene generation | `POST /v1/images/generations`<br/>(`output_format="png"`) | Prompt is deterministically assembled in Python from verified corridors, LZs, and dispatched units only—never inventing unverified routes or hazards. | [`wonder_commander.py`](./backend/services/wonder_commander.py)<br/>[`presets.py`](./backend/services/presets.py) |
 
@@ -207,7 +207,7 @@ All geometric verification, before/after delta matching, and multi-sector scorin
    Ensures evacuation corridors stay on segmented passable surfaces (`road`, `bridge`, `clear flat ground`, `rooftop`).
 3. **Landing-Zone Pixel Clearance & Surface Overlap:**
    Drone landing zones require normalized radius $r \ge 0.015 \cdot \min(W, H)$; helicopter landing zones require $r \ge 0.040 \cdot \min(W, H)$, hazard overlap $\le 10\%$, and safe-surface overlap $\ge 50\%$. Clearance is certified in image-space pixels—never fake GPS meters.
-4. **Day 7 Multi-Sector Priority Formula (`rank_sectors`):**
+4. **Multi-Sector Priority Formula (`rank_sectors`):**
    Ranks multiple disaster sectors on a transparent $[0, 100]$ scale with zero model calls:
    $$\text{Score} = 0.40 \cdot \text{Urgency} + \text{Severity}_{\le 25} + \text{PeopleAtRisk}_{\le 15} + \text{HazardFootprint}_{\le 10} + \text{AccessPressure}_{\le 10}$$
 
@@ -249,10 +249,10 @@ All geometric verification, before/after delta matching, and multi-sector scorin
   > *"Only verified geometry is allowed into `muse-wonder-1.0` with high reasoning effort. And even after Wonder responds, our post-generation Python guardrail checks every unit assignment—holding any unit aimed at an unverified target. Finally, `muse-image-1.0` generates this tactical field briefing card from a deterministic facts-only prompt, ready to transmit to field units."*
 
 ### `2:30 – 3:00` · Before/After Clearance Flip & Multi-Sector Priority Ranking (30s)
-- **On-Screen Action:** Open the **DAY 7: DAMAGE DELTA, POST-CLEARANCE & MULTI-SECTOR TRIAGE** panel, run the post-clearance verification check, and click **RANK SECTORS** across saved sectors (Flood, Earthquake Bridge, Wildfire).
+- **On-Screen Action:** Scroll to the **BEFORE / AFTER DAMAGE DELTA** and **MULTI-SECTOR TRIAGE** panels, run the post-clearance verification check, and click **RANK SECTORS** across saved sectors (Flood, Earthquake Bridge, Wildfire).
 - **What Judges See:**
   - `compute_damage_delta` matches before/after detections by greedy IoU (`CLEARED` hazards turn green, `NEW` hazards turn red).
-  - `verify_clearance` flips a previously blocked corridor to `VERIFIED` only after the Day 4 geometry verifier passes on the post-clearance scan.
+  - `verify_clearance` flips a previously blocked corridor to `VERIFIED` only after the deterministic geometry verifier passes on the post-clearance scan.
   - `rank_sectors` ranks all active sectors on the published $0\text{–}100$ deterministic formula.
 - **Speaker Script:**
   > *"As debris is cleared, CrisisGrid compares before-and-after scans and only flips a blocked route to verified when the new scan passes deterministic geometry. Across multiple disaster zones, our multi-sector triage engine ranks sectors deterministically so commanders know exactly where to dispatch first. Five Meta frontier models, one API key, mathematically verified end to end."*
@@ -277,13 +277,13 @@ cp .env.example .env
 ```bash
 pip install -r backend/requirements.txt
 
-python backend/test_meta_api.py                    # Day 1: sam-3.1 regex parser & box IoU self-test (7 assertions)
-python backend/test_sam_hazard_scanner.py          # Day 2: Parallel 9-concept sam-3.1 scanner contract (18 assertions)
-python backend/test_voice_and_triage.py            # Day 3: WAV header validator, ASR & Spark triage (38 assertions)
-python backend/test_verifiable_corridor_engine.py  # Day 4: Pure Python geometry, RLE mask IoU & re-route loop (48 assertions)
-python backend/test_wonder_commander.py            # Day 5: Pre/post dispatch guardrails & briefing card prompt (55 assertions)
-python backend/test_damage_delta.py                # Day 7: Before/after IoU delta, clearance flip & sector rank (24 assertions)
-python backend/test_presets.py                     # Day 8: Global preset catalogue & asset integrity (25 assertions)
+python backend/test_meta_api.py                    # Core: sam-3.1 regex parser & box IoU self-test (7 assertions)
+python backend/test_sam_hazard_scanner.py          # Scanner: Parallel 9-concept sam-3.1 scanner contract (18 assertions)
+python backend/test_voice_and_triage.py            # Triage: WAV header validator, ASR & Spark triage (38 assertions)
+python backend/test_verifiable_corridor_engine.py  # Verifier: Pure Python geometry, RLE mask IoU & re-route loop (48 assertions)
+python backend/test_wonder_commander.py            # Dispatch: Pre/post dispatch guardrails & briefing card prompt (55 assertions)
+python backend/test_damage_delta.py                # Delta: Before/after IoU delta, clearance flip & sector rank (24 assertions)
+python backend/test_presets.py                     # Presets: Global preset catalogue & asset integrity (25 assertions)
 ```
 
 ### 3. Run Live Meta Model API Smoke Tests (`--live`, Requires `MODEL_API_KEY`)
@@ -318,26 +318,26 @@ Open **`http://localhost:3000`** in your browser (Swagger API docs available at 
 
 ## 🔌 Complete API Reference
 
-| Method | Path | Day | Status | Description |
+| Method | Path | Stage | Status | Description |
 | :---: | :--- | :---: | :---: | :--- |
-| `GET` | `/health` | 1 | **Live** | Service version (`0.8.0-day8`), 5-model registry, and boolean `model_api_key_configured`. |
-| `GET` | `/api/config/status` | 1 | **Live** | Frontend-safe configuration status and setup hint. |
-| `POST` | `/api/sam/parse` | 1 | **Live** | Offline deterministic regex parser for `sam-3.1` `<\|box;...\|><\|mask;...\|>` wire output. |
-| `GET` | `/api/scan-hazards/concepts` | 2 | **Live** | Canonical 5-hazard (`#FF2D20`) and 4-safe-zone (`#00C853`) concept vocabularies. |
-| `POST` | `/api/scan-hazards` *(alias `/api/scan`)* | 2 | **Live** | Parallel async `sam-3.1` segmentation (1 noun phrase per request). |
-| `GET` | `/api/triage/readiness` | 3 | **Live** | WAV audio contract (`16000`/`24000` Hz mono `s16le`), text fallback, and grounding schema. |
-| `POST` | `/api/triage` | 3 | **Live** | Multipart `audio` (WAV) and/or `text`, optional `scan_json` + `image` → `muse-voice-transcribe-1.0` + `muse-spark-1.3`. |
-| `POST` | `/api/triage/text` | 3 | **Live** | JSON text-fallback variant of `/api/triage` for browser clients without audio. |
-| `GET` | `/api/verify/readiness` | 4 | **Live** | Deterministic verifier thresholds ($\le 10\%$ hazard contact, $\ge 50\%$ safe support) and Overpass config. |
-| `POST` | `/api/verify` | 4 | **Live** | Pure Python geometry verifier + OpenStreetMap Overpass lookup + bounded `muse-spark-1.3` re-route loop. |
-| `GET` | `/api/dispatch/readiness` | 5 | **Live** | Dispatch trust contract: verified-only pre-gate, post-Wonder unit guardrail, facts-only briefing card. |
-| `POST` | `/api/dispatch` | 5 | **Live** | `muse-wonder-1.0` (`reasoning={"effort": "high"}`) multi-unit dispatch + `muse-image-1.0` PNG briefing card. |
-| `POST` | `/api/run-crisisgrid` | 5 | **Live** | Unified 1-call pipeline: `scan → triage → verify → dispatch` with concatenated Verifiable Agent Trace. |
-| `GET` | `/api/delta/readiness` | 7 | **Live** | Day 7 trust contract: delta highlights change; only the Day 4 verifier flips candidate status. |
-| `POST` | `/api/delta` | 7 | **Live** | Deterministic greedy per-concept IoU before/after damage delta (`new` / `cleared` / `persistent`). |
-| `POST` | `/api/delta/verify-clearance` | 7 | **Live** | Re-verifies candidate corridors/LZs against the post-clearance scan (0 model calls). |
-| `POST` | `/api/sectors/rank` | 7 | **Live** | Deterministic $0\text{–}100$ multi-sector triage priority ranking (`dispatch_now`, `clearance_then_reverify`, etc.). |
-| `GET` | `/api/presets` *(+ `/api/presets/{id}`)* | 8 | **Live** | Pre-loaded global disaster preset catalogue (`urban-flood`, `earthquake-bridge`, `wildfire-helipad`). |
+| `GET` | `/health` | Core | **Live** | Service version (`1.0.0`), 5-model registry, and boolean `model_api_key_configured`. |
+| `GET` | `/api/config/status` | Core | **Live** | Frontend-safe configuration status and setup hint. |
+| `POST` | `/api/sam/parse` | Core | **Live** | Offline deterministic regex parser for `sam-3.1` `<\|box;...\|><\|mask;...\|>` wire output. |
+| `GET` | `/api/scan-hazards/concepts` | Scan | **Live** | Canonical 5-hazard (`#FF2D20`) and 4-safe-zone (`#00C853`) concept vocabularies. |
+| `POST` | `/api/scan-hazards` *(alias `/api/scan`)* | Scan | **Live** | Parallel async `sam-3.1` segmentation (1 noun phrase per request). |
+| `GET` | `/api/triage/readiness` | Triage | **Live** | WAV audio contract (`16000`/`24000` Hz mono `s16le`), text fallback, and grounding schema. |
+| `POST` | `/api/triage` | Triage | **Live** | Multipart `audio` (WAV) and/or `text`, optional `scan_json` + `image` → `muse-voice-transcribe-1.0` + `muse-spark-1.3`. |
+| `POST` | `/api/triage/text` | Triage | **Live** | JSON text-fallback variant of `/api/triage` for browser clients without audio. |
+| `GET` | `/api/verify/readiness` | Verify | **Live** | Deterministic verifier thresholds ($\le 10\%$ hazard contact, $\ge 50\%$ safe support) and Overpass config. |
+| `POST` | `/api/verify` | Verify | **Live** | Pure Python geometry verifier + OpenStreetMap Overpass lookup + bounded `muse-spark-1.3` re-route loop. |
+| `GET` | `/api/dispatch/readiness` | Dispatch | **Live** | Dispatch trust contract: verified-only pre-gate, post-Wonder unit guardrail, facts-only briefing card. |
+| `POST` | `/api/dispatch` | Dispatch | **Live** | `muse-wonder-1.0` (`reasoning={"effort": "high"}`) multi-unit dispatch + `muse-image-1.0` PNG briefing card. |
+| `POST` | `/api/run-crisisgrid` | Pipeline | **Live** | Unified 1-call pipeline: `scan → triage → verify → dispatch` with concatenated Verifiable Agent Trace. |
+| `GET` | `/api/delta/readiness` | Delta | **Live** | Delta trust contract: delta highlights change; only the deterministic geometry verifier flips candidate status. |
+| `POST` | `/api/delta` | Delta | **Live** | Deterministic greedy per-concept IoU before/after damage delta (`new` / `cleared` / `persistent`). |
+| `POST` | `/api/delta/verify-clearance` | Delta | **Live** | Re-verifies candidate corridors/LZs against the post-clearance scan (0 model calls). |
+| `POST` | `/api/sectors/rank` | Sectors | **Live** | Deterministic $0\text{–}100$ multi-sector triage priority ranking (`dispatch_now`, `clearance_then_reverify`, etc.). |
+| `GET` | `/api/presets` *(+ `/api/presets/{id}`)* | Presets | **Live** | Pre-loaded global disaster preset catalogue (`urban-flood`, `earthquake-bridge`, `wildfire-helipad`). |
 
 ### One-Call End-to-End Pipeline via `curl`
 

@@ -1,6 +1,6 @@
 "use client";
-// CrisisGrid Tactical Command - Day 6 full build (Nov 1, 2026).
-// Judge flow in one browser session: upload -> SCAN (sam-3.1) -> TRIAGE
+// CrisisGrid Tactical Command - Autonomous Multimodal Disaster Triage & Dispatch UI.
+// End-to-end operator flow in one browser session: upload -> SCAN (sam-3.1) -> TRIAGE
 // (muse-voice-transcribe-1.0 + muse-spark-1.3) -> VERIFY (deterministic Python,
 // the only component allowed to mark anything green) -> DISPATCH
 // (muse-wonder-1.0 + muse-image-1.0), or one-click RUN FULL PIPELINE.
@@ -41,7 +41,7 @@ export default function Home() {
   const [dispatch, setDispatch] = useState<DispatchResult | null>(null);
   const [dispatchBlock, setDispatchBlock] = useState<{ status: string; message: string } | null>(null);
   const [includeCard, setIncludeCard] = useState(true);
-  // Day 7 state: after-frame delta, clearance re-verification, sectors.
+  // Damage delta, clearance re-verification, and multi-sector triage state.
   const [afterFile, setAfterFile] = useState<File | null>(null);
   const [afterUrl, setAfterUrl] = useState<string | null>(null);
   const [afterScan, setAfterScan] = useState<ScanHazardsResult | null>(null);
@@ -52,7 +52,7 @@ export default function Home() {
   const [sectorName, setSectorName] = useState("");
   const [sectorStore, setSectorStore] = useState<{ id: string; name: string; savedAt: string; imageUrl: string | null; scan: ScanHazardsResult | null; triage: TriageResult | null; verify: VerifyResult | null }[]>([]);
   const [sectorRank, setSectorRank] = useState<SectorRankResult | null>(null);
-  // Day 8 state: preset catalogue (API with local fallback).
+  // Global disaster preset catalogue (API with local fallback).
   const [presets, setPresets] = useState<CrisisPreset[]>(FALLBACK_PRESETS);
   const [presetSource, setPresetSource] = useState<"api" | "fallback">("fallback");
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
@@ -225,7 +225,7 @@ export default function Home() {
     await runPipelineCore(imageFile, fieldText, audioFile, lat, lon);
   }
 
-  // ---- Day 8 preset handlers -------------------------------------------- //
+  // ---- Global disaster preset handlers ----------------------------------- //
   async function fetchPresetFile(path: string, filename: string, type: string): Promise<File> {
     const res = await fetch(path);
     if (!res.ok) throw new Error(`Preset asset ${path} failed to load (${res.status}). Check frontend/public/presets.`);
@@ -260,7 +260,7 @@ export default function Home() {
   }
 
 
-  // ---- Day 7 handlers ---------------------------------------------------- //
+  // ---- Damage delta & multi-sector handlers ----------------------------- //
   function loadAfterImage(file: File | null) {
     if (afterUrl) URL.revokeObjectURL(afterUrl);
     setAfterFile(file); setAfterUrl(file ? URL.createObjectURL(file) : null);
@@ -290,7 +290,7 @@ export default function Home() {
     try {
       const r = await verifyClearance({ scanAfter: afterScan, triageResult: triage, verificationBefore: verify });
       setClearance(r);
-      // The ONLY way state flips: Day 4 verifier output on the after scan
+      // The ONLY way state flips: deterministic verifier output on the after scan
       // becomes the live verification (and after scan becomes the live field).
       setVerify(r.verification_result); setScan(afterScan); setDispatch(null); setDispatchBlock(null);
       setStageState("verify", r.dispatch_ready ? "done" : "blocked");
@@ -351,7 +351,7 @@ export default function Home() {
           <p>AUTONOMOUS DISASTER TRIAGE - INFRASTRUCTURE ASSESSMENT - EMERGENCY DISPATCH</p>
         </div>
         <div className="status-box">
-          <div>BACKEND: {backendDown ? "OFFLINE" : health ? `ONLINE (${health.version})` : "CHECKING..."}</div>
+          <div>BACKEND: {backendDown ? "OFFLINE" : health ? `ONLINE (v${health.version.replace(/-day\d+$/i, "")})` : "CHECKING..."}</div>
           <div>MODEL_API_KEY: {health ? (keyReady ? "CONFIGURED" : "NOT SET") : "-"}</div>
           <div>API: api.meta.ai/v1 - ONLY INFERENCE PROVIDER</div>
         </div>
@@ -366,7 +366,7 @@ export default function Home() {
       </div>
 
       <section className="panel control-panel" aria-label="Mission inputs and pipeline controls">
-        <div className="panel-head"><span>MISSION CONTROL</span><span className="tag tag-yellow">DAY 6 - JUDGE FLOW</span></div>
+        <div className="panel-head"><span>MISSION CONTROL</span><span className="tag tag-yellow">AUTONOMOUS PIPELINE</span></div>
         <div className="control-grid">
           <div
             className={`dropzone${dragOver ? " drag" : ""}`}
@@ -424,7 +424,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            {scan && <p className="panel-note">Scan: {scan.summary.total_detections} detections / {scan.summary.total_masks} masks across {scan.summary.concepts_succeeded}/9 concepts in {Math.round(scan.summary.total_latency_ms)} ms. Status stays <strong>UNVERIFIED SEGMENTATION ONLY</strong> until the Day-4 verifier rules on routes.</p>}
+            {scan && <p className="panel-note">Scan: {scan.summary.total_detections} detections / {scan.summary.total_masks} masks across {scan.summary.concepts_succeeded}/9 concepts in {Math.round(scan.summary.total_latency_ms)} ms. Status stays <strong>UNVERIFIED SEGMENTATION ONLY</strong> until the deterministic geometry verifier rules on routes.</p>}
           </section>
 
           {triage && (
@@ -465,7 +465,7 @@ export default function Home() {
           canSave={!!scan || !!triage} />
       </div>
 
-      <footer className="footer">META GLOBAL AI DEVELOPER HACKATHON - PUSH THE FRONTIER - DAY 8 / 9 (NOV 3, 2026) - MODELS PROPOSE, DETERMINISTIC PYTHON VERIFIES, ONLY VERIFIED ROUTES DISPATCH</footer>
+      <footer className="footer">CRISISGRID TACTICAL COMMAND · POWERED BY META MODEL API (api.meta.ai/v1) · MODELS PROPOSE, DETERMINISTIC PYTHON VERIFIES, ONLY VERIFIED ROUTES DISPATCH</footer>
     </main>
   );
 }

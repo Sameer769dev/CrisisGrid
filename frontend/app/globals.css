@@ -35,7 +35,7 @@ code { background:#fff; border:2px solid var(--ink); padding:0 4px; }
 .field-input { width:calc(100% - 28px); margin:8px 14px 16px; border:3px solid var(--ink); font:inherit; padding:8px; background:#eee; }
 .footer { margin-top:18px; border:3px solid var(--ink); background:var(--ink); color:#fff; padding:10px 14px; font-size:12px; font-weight:700; }
 
-/* --- Day 6 additions: mission control, interactive canvas, live trace, dispatch --- */
+/* --- Mission Control, interactive canvas, live trace, dispatch --- */
 .tag-green { background:var(--green); }
 .main-col { display:grid; gap:18px; min-width:0; }
 .control-panel { margin-bottom:18px; }

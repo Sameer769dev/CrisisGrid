@@ -107,7 +107,7 @@ MAX_AUDIO_BYTES = 25 * 1024 * 1024  # 25 MB field-radio WAV ceiling (Day 3)
 app = FastAPI(
     title="CrisisGrid API",
     description="Autonomous Multimodal Disaster Triage & Emergency Dispatch Agent - Meta Model API only.",
-    version="0.8.0-day8",
+    version="1.0.0",
 )
 
 app.add_middleware(
@@ -166,7 +166,7 @@ def scan_hazard_concepts() -> dict:
         "safe_zones": [
             {"concept": c, "kind": "safe_zone", "color": CONCEPT_COLORS["safe_zone"]} for c in SAFE_ZONE_CONCEPTS
         ],
-        "note": "Segmentation only - nothing here is a verified safe corridor until the Day 4 verifier runs.",
+        "note": "Segmentation only - nothing here is a verified safe corridor until the deterministic geometry verifier runs.",
     }
 
 
@@ -251,7 +251,7 @@ def triage_readiness() -> dict:
             "scan_id_field": "scan_id",
             "image_field": "image (optional, for muse-spark-1.3 multimodal reasoning)",
         },
-        "output": "Structured triage priorities + UNVERIFIED candidate evacuation corridors / landing zones (normalized 0-1 coordinates). Day 4 verifies; nothing here is marked safe.",
+        "output": "Structured triage priorities + UNVERIFIED candidate evacuation corridors / landing zones (normalized 0-1 coordinates). Deterministic geometry verifier checks each candidate; nothing here is marked safe.",
     }
 
 
@@ -364,7 +364,7 @@ def verify_readiness() -> dict:
         "methods": "mask IoU when SAM RLE decodes (integer/COCO counts), otherwise exact bbox geometry (declared in trace)",
         "facilities": {"provider": "OpenStreetMap Overpass API", "endpoint": OVERPASS_ENDPOINT,
                        "note": "Queried only when latitude/longitude are supplied; context only."},
-        "output": "verified (green) or rejected (red) per candidate with geometric proof; only verified candidates are dispatch-ready for Day 5.",
+        "output": "verified (green) or rejected (red) per candidate with geometric proof; only verified candidates are dispatch-ready.",
     }
 
 

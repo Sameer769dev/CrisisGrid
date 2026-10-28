@@ -600,7 +600,7 @@ async def run_triage(
         }
         trace.append({
             "step": "input", "event": "text_fallback_used",
-            "detail": "No audio supplied - clean text-input fallback used for browser testing (AGENTS.md SS3.2).",
+            "detail": "No audio supplied - clean text-input fallback used for field report ingestion.",
             "state": "info", "latency_ms": 0.0,
         })
     else:
@@ -615,10 +615,10 @@ async def run_triage(
     trace.append({
         "step": "sam-3.1", "event": "scan_grounding_prepared",
         "detail": (
-            f"Day 2 scan grounding: {scan_summary['totals']['total_detections']} detection(s) across "
+            f"Spatial scan grounding: {scan_summary['totals']['total_detections']} detection(s) across "
             f"{len(scan_summary.get('concepts_with_detections') or [])} concept(s); RLE masks stripped for reasoning."
             if scan_summary.get("provided") else
-            "No Day 2 scan supplied - triage grounded in transcript/image only; scan requested in missing_information."
+            "No spatial scan supplied - triage grounded in transcript/image only; scan requested in missing_information."
         ),
         "state": "info",
     })
@@ -634,7 +634,7 @@ async def run_triage(
     })
     trace.append({
         "step": "verification", "event": "candidates_marked_unverified",
-        "detail": "Candidate corridors/landing zones are proposals only. Day 4 deterministic verifier must verify or reject each before any dispatch (Day 5).",
+        "detail": "Candidate corridors/landing zones are proposals only. Deterministic geometry verifier must verify or reject each before any dispatch.",
         "state": "caution",
     })
 
@@ -665,7 +665,7 @@ async def run_triage(
         "total_latency_ms": total_ms,
         # Trust law: triage proposes, Day 4 disposes.
         "verification_status": "unverified_triage_proposal",
-        "next_step": "Day 4: deterministic verifier checks every candidate corridor (hazard IoU) and landing zone (clearance area) before Day 5 dispatch.",
+        "next_step": "Deterministic geometry verifier checks every candidate corridor (hazard IoU) and landing zone (clearance area) before dispatch.",
     }
 
 

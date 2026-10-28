@@ -343,7 +343,7 @@ async def scan_hazards(
         "detail": (
             f"{len(flat_detections)} total detection(s) across {ok_count}/{len(layers)} "
             f"successful concept layer(s) in {total_ms} ms. "
-            "Segmentation only - corridors are NOT verified safe until Day 4."
+            "Segmentation only - corridors are NOT verified safe until the deterministic geometry verifier runs."
         ),
         "state": "info",
     })

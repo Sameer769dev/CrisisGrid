@@ -173,7 +173,7 @@ def compute_damage_delta(scan_before: dict[str, Any], scan_after: dict[str, Any]
         "per_concept": per_concept, "delta_detections": delta_detections,
         "trace": trace, "total_latency_ms": round((time.perf_counter() - started) * 1000, 1),
         "verification_status": "delta_only_not_a_route_verification",
-        "next_step": "Re-run candidates through POST /api/delta/verify-clearance (Day 4 verifier on the AFTER scan) before treating any cleared corridor as usable."}
+        "next_step": "Re-run candidates through POST /api/delta/verify-clearance (deterministic geometry verifier on the AFTER scan) before treating any cleared corridor as usable."}
 
 # --------------------------------------------------------------------------- #
 # Post-clearance verification: same candidates, AFTER scan, Day 4 verifier only
@@ -245,7 +245,7 @@ def verify_clearance(scan_after: dict[str, Any], *, triage_result: dict[str, Any
         verdict = "no_status_change"
     trace = list(verification.get("trace") or [])
     trace.append({"step": "clearance", "event": f"verdict:{verdict}",
-                  "detail": (f"Post-clearance re-verification on the AFTER scan (Day 4 verifier, zero model calls): "
+                  "detail": (f"Post-clearance re-verification on the AFTER scan (deterministic geometry verifier, zero model calls): "
                              f"{len(flipped)} candidate(s) flipped blocked -> VERIFIED, {len(still_blocked)} still REJECTED. "
                              "A candidate is usable only if its after_status is verified."),
                   "state": "verified" if verdict == "cleared_and_verified" else "caution" if flipped else "rejected" if still_blocked else "info"})
@@ -261,7 +261,7 @@ def verify_clearance(scan_after: dict[str, Any], *, triage_result: dict[str, Any
         "total_latency_ms": round((time.perf_counter() - started) * 1000, 1),
         "verification_status": "verified_by_deterministic_python" if verification["status"] == "verified" else "not_verified_rejected_or_partial",
         "dispatch_ready": verification["status"] == "verified",
-        "next_step": "Only candidates with after_status=verified may flow into Day 5 dispatch."}
+        "next_step": "Only candidates with after_status=verified may flow into autonomous dispatch."}
     return {
         "status": "ok", "day": 7, "engine": "deterministic_python", "model_calls": 0,
         "verdict": verdict, "status_changes": changes,
@@ -361,4 +361,4 @@ def rank_sectors(sectors: list[dict[str, Any]]) -> dict[str, Any]:
             "ranked_sectors": ranked, "trace": trace,
             "total_latency_ms": round((time.perf_counter() - started) * 1000, 1),
             "verification_status": "ranking_only_dispatch_still_requires_day4_verified_candidates",
-            "next_step": "Dispatch (Day 5) still only accepts Day 4-verified candidates per sector; ranking orders the work, it never verifies a route."}
+            "next_step": "Autonomous dispatch only accepts geometrically verified candidates per sector; ranking orders the work, it never verifies a route."}

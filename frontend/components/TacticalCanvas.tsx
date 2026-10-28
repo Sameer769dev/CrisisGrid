@@ -1,5 +1,5 @@
 "use client";
-// Day 6: Interactive HTML5 Canvas - sam-3.1 boxes (faithful overlay; live SAM mask
+// Interactive HTML5 Canvas - sam-3.1 boxes (faithful overlay; live SAM mask
 // payload is opaque vendor RLE, so boxes are the honest rendering), candidate
 // corridors and landing zones coloured strictly by verification state.
 // Green = verified/passable, Red = hazard/rejected, Yellow = unverified proposal.
