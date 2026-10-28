@@ -17,7 +17,7 @@ import {
 } from "@/lib/api";
 import { DeltaPanel, SectorPanel, type SectorSnapshot } from "@/components/Day7Panels";
 import PresetPanel from "@/components/PresetPanel";
-import { FALLBACK_PRESETS, type CrisisPreset } from "@/lib/presets";
+import { DISASTER_TEST_IMAGES, FALLBACK_PRESETS, type CrisisPreset, type DisasterTestImage } from "@/lib/presets";
 
 type Stage = "scan" | "triage" | "verify" | "dispatch" | "pipeline";
 type StageState = "idle" | "running" | "done" | "error" | "blocked";
@@ -58,6 +58,8 @@ export default function Home() {
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
   const [usgs, setUsgs] = useState<UsgsLiveResult | null>(null);
   const [usgsBusy, setUsgsBusy] = useState(false);
+  const [sampleFilter, setSampleFilter] = useState<string>("all");
+  const filteredSamples = useMemo(() => sampleFilter === "all" ? DISASTER_TEST_IMAGES : DISASTER_TEST_IMAGES.filter((s) => s.category === sampleFilter), [sampleFilter]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -262,6 +264,26 @@ export default function Home() {
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
   }
 
+  async function handleSelectTestImage(item: DisasterTestImage, imageOnly = false) {
+    setError(null);
+    try {
+      const img = await fetchPresetFile(item.image_path, item.image_filename, "image/jpeg");
+      loadImage(img);
+      setActivePresetId(item.id);
+      if (!imageOnly) {
+        const audio = item.audio_path ? await fetchPresetFile(item.audio_path, item.audio_filename ?? "field-radio.wav", "audio/wav") : null;
+        setAudioFile(audio);
+        setFieldText(item.field_report);
+        setLatitude(String(item.latitude));
+        setLongitude(String(item.longitude));
+      }
+      if (item.after_pair_path && item.after_pair_filename) {
+        const afterImg = await fetchPresetFile(item.after_pair_path, item.after_pair_filename, "image/jpeg");
+        loadAfterImage(afterImg);
+      }
+    } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
+  }
+
   async function handleFetchUsgs(feed = "4.5_day") {
     setUsgsBusy(true); setError(null);
     try { const r = await fetchUsgsLive(feed, 4.5, 6); setUsgs(r); }
@@ -398,7 +420,8 @@ export default function Home() {
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); loadImage(e.dataTransfer.files?.[0] ?? null); }}
           >
-            <strong>{imageFile ? imageFile.name : "DROP DISASTER IMAGE HERE"}</strong>
+            {imageUrl && <img src={imageUrl} alt="Selected disaster frame" className="dropzone-preview" />}
+            <strong>{imageFile ? imageFile.name : "DROP DISASTER IMAGE HERE — OR SELECT A TEST IMAGE BELOW"}</strong>
             <span>{imageFile ? `${(imageFile.size / 1024).toFixed(0)} KB - click below to replace` : "aerial / drone / street - JPG or PNG"}</span>
             <label className="btn btn-file">CHOOSE IMAGE<input type="file" accept="image/*" hidden onChange={(e) => loadImage(e.target.files?.[0] ?? null)} /></label>
           </div>
@@ -412,6 +435,44 @@ export default function Home() {
               <div><label className="field-label" htmlFor="lat">LATITUDE (OPTIONAL, OSM)</label><input id="lat" className="field-input inline-input" inputMode="decimal" value={latitude} onChange={(e) => setLatitude(e.target.value)} placeholder="e.g. 27.7172" /></div>
               <div><label className="field-label" htmlFor="lon">LONGITUDE (OPTIONAL, OSM)</label><input id="lon" className="field-input inline-input" inputMode="decimal" value={longitude} onChange={(e) => setLongitude(e.target.value)} placeholder="e.g. 85.3240" /></div>
             </div>
+          </div>
+        </div>
+        <div className="sample-strip" aria-label="Built-in disaster test images">
+          <div className="sample-head">
+            <span>SELECT TEST DISASTER IMAGE ({filteredSamples.length}/9 SCENES — FLOOD · EARTHQUAKE · LANDSLIDE · CYCLONE · TORNADO · WILDFIRE)</span>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {(["all", "flood", "earthquake", "landslide", "cyclone", "tornado", "wildfire", "post-clearance"] as const).map((cat) => (
+                <button key={cat} type="button" className={`trace-filter${sampleFilter === cat ? " active" : ""}`} onClick={() => setSampleFilter(cat)}>
+                  {cat.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="sample-grid">
+            {filteredSamples.map((s) => (
+              <div key={s.id} className={`sample-card${activePresetId === s.id ? " active" : ""}`}>
+                <div>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.image_path} alt={s.name} className="sample-thumb" onClick={() => handleSelectTestImage(s, false)} />
+                  <div className="sample-meta">
+                    <div>
+                      <span className="tag tag-red">{s.category.toUpperCase()}</span>{" "}
+                      {s.audio_path && <span className="tag tag-green">WAV</span>}
+                    </div>
+                    <strong>{s.name}</strong>
+                    <small>{s.region}</small>
+                  </div>
+                </div>
+                <div className="sample-actions">
+                  <button type="button" className="btn btn-small btn-pipeline" disabled={busy} onClick={() => handleSelectTestImage(s, false)}>
+                    LOAD SCENE
+                  </button>
+                  <button type="button" className="btn btn-small" disabled={busy} title="Load image file only without overwriting field report" onClick={() => handleSelectTestImage(s, true)}>
+                    IMG ONLY
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <div className="pipeline-row" role="group" aria-label="Pipeline steps">
