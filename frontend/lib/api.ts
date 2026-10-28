@@ -1,9 +1,46 @@
 // Typed client for the CrisisGrid FastAPI backend. No secrets here - MODEL_API_KEY stays backend-only.
-export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "http://localhost:8000"
-).replace(/\/+$/, "");
+const PROD_RENDER_URL = "https://crisisgrid-api-m0dp.onrender.com";
+
+export function normalizeBackendUrl(raw?: string): string {
+  let cleaned = (raw ?? "").trim().replace(/\/+$/, "");
+  cleaned = cleaned.replace(/\/health$/i, "");
+  if (!cleaned) {
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1") {
+        return PROD_RENDER_URL;
+      }
+    }
+    return "http://localhost:8000";
+  }
+  if (!/^https?:\/\//i.test(cleaned)) {
+    const isLocal = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(cleaned);
+    cleaned = `${isLocal ? "http" : "https"}://${cleaned}`;
+  }
+  return cleaned;
+}
+
+export const API_BASE_URL = normalizeBackendUrl(
+  process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL,
+);
+
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  const isRemoteBrowser =
+    typeof window !== "undefined" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
+  const primaryUrl = isRemoteBrowser ? `/cg-api${path}` : `${API_BASE_URL}${path}`;
+  const fallbackUrl = isRemoteBrowser ? `${API_BASE_URL}${path}` : `/cg-api${path}`;
+  try {
+    const res = await fetch(primaryUrl, init);
+    if (isRemoteBrowser && (res.status === 404 || res.status === 504)) {
+      return await fetch(fallbackUrl, init);
+    }
+    return res;
+  } catch {
+    return await fetch(fallbackUrl, init);
+  }
+}
 
 export interface HealthStatus {
   status: string;
@@ -105,14 +142,14 @@ export interface ScanConcepts {
 }
 
 export async function fetchHealth(signal?: AbortSignal): Promise<HealthStatus> {
-  const res = await fetch(`${API_BASE_URL}/health`, { signal, cache: "no-store" });
+  const res = await apiFetch(`/health`, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`Backend /health failed: ${res.status}`);
   return res.json();
 }
 
 
 export async function fetchScanConcepts(signal?: AbortSignal): Promise<ScanConcepts> {
-  const res = await fetch(`${API_BASE_URL}/api/scan-hazards/concepts`, { signal, cache: "no-store" });
+  const res = await apiFetch(`/api/scan-hazards/concepts`, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`Backend /api/scan-hazards/concepts failed: ${res.status}`);
   return res.json();
 }
@@ -126,7 +163,7 @@ export async function scanHazards(
   const form = new FormData();
   form.append("file", image);
   if (concepts?.length) form.append("concepts", concepts.join(","));
-  const res = await fetch(`${API_BASE_URL}/api/scan-hazards`, {
+  const res = await apiFetch(`/api/scan-hazards`, {
     method: "POST",
     body: form,
     signal,
@@ -236,7 +273,7 @@ export interface TriageTextRequest {
 
 /** Day 3 JSON text fallback: typed field report + optional Day 2 scan payload. */
 export async function triageText(payload: TriageTextRequest, signal?: AbortSignal): Promise<TriageResult> {
-  const res = await fetch(`${API_BASE_URL}/api/triage/text`, {
+  const res = await apiFetch(`/api/triage/text`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -268,7 +305,7 @@ export async function triageReport(
   if (input.scanResult) form.append("scan_json", JSON.stringify(input.scanResult));
   if (input.scanId) form.append("scan_id", input.scanId);
   if (input.image) form.append("image", input.image);
-  const res = await fetch(`${API_BASE_URL}/api/triage`, {
+  const res = await apiFetch(`/api/triage`, {
     method: "POST",
     body: form,
     signal,
@@ -346,7 +383,7 @@ export interface VerifyResult {
 
 /** Day 4: deterministic verification; Spark re-routes only when the verifier rejects. */
 export async function verifyCandidates(payload: VerifyRequest, signal?: AbortSignal): Promise<VerifyResult> {
-  const res = await fetch(`${API_BASE_URL}/api/verify`, {
+  const res = await apiFetch(`/api/verify`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -451,7 +488,7 @@ export interface DispatchReadiness {
 }
 
 export async function fetchDispatchReadiness(signal?: AbortSignal): Promise<DispatchReadiness> {
-  const res = await fetch(`${API_BASE_URL}/api/dispatch/readiness`, { signal, cache: "no-store" });
+  const res = await apiFetch(`/api/dispatch/readiness`, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`Backend /api/dispatch/readiness failed: ${res.status}`);
   return res.json();
 }
@@ -462,7 +499,7 @@ export async function fetchDispatchReadiness(signal?: AbortSignal): Promise<Disp
  * unverified targets come back "held" (yellow), never dispatched (green).
  */
 export async function runDispatch(payload: DispatchRequestBody, signal?: AbortSignal): Promise<DispatchResult> {
-  const res = await fetch(`${API_BASE_URL}/api/dispatch`, {
+  const res = await apiFetch(`/api/dispatch`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -536,7 +573,7 @@ export async function runCrisisGrid(
   if (input.maxCorrectionAttempts != null) form.append("max_correction_attempts", String(input.maxCorrectionAttempts));
   if (input.includeBriefingCard != null) form.append("include_briefing_card", String(input.includeBriefingCard));
   if (input.concepts?.length) form.append("concepts", input.concepts.join(","));
-  const res = await fetch(`${API_BASE_URL}/api/run-crisisgrid`, {
+  const res = await apiFetch(`/api/run-crisisgrid`, {
     method: "POST",
     body: form,
     signal,
@@ -574,7 +611,7 @@ export interface DeltaResult {
 }
 
 export async function computeDelta(scanBefore: ScanHazardsResult, scanAfter: ScanHazardsResult, iouThreshold = 0.1, signal?: AbortSignal): Promise<DeltaResult> {
-  const res = await fetch(`${API_BASE_URL}/api/delta`, {
+  const res = await apiFetch(`/api/delta`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ scan_before: scanBefore, scan_after: scanAfter, iou_threshold: iouThreshold }),
     signal, cache: "no-store",
@@ -598,7 +635,7 @@ export async function verifyClearance(payload: {
   candidateCorridors?: Record<string, unknown>[] | null; candidateLandingZones?: Record<string, unknown>[] | null;
   verificationBefore?: VerifyResult | null;
 }, signal?: AbortSignal): Promise<ClearanceResult> {
-  const res = await fetch(`${API_BASE_URL}/api/delta/verify-clearance`, {
+  const res = await apiFetch(`/api/delta/verify-clearance`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       scan_after: payload.scanAfter, triage_result: payload.triageResult ?? null,
@@ -629,7 +666,7 @@ export interface SectorRankResult {
 }
 
 export async function rankSectors(sectors: Record<string, unknown>[], signal?: AbortSignal): Promise<SectorRankResult> {
-  const res = await fetch(`${API_BASE_URL}/api/sectors/rank`, {
+  const res = await apiFetch(`/api/sectors/rank`, {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sectors }), signal, cache: "no-store",
   });
@@ -640,7 +677,7 @@ export async function rankSectors(sectors: Record<string, unknown>[], signal?: A
 // Day 8 API client (appended): preset catalogue. Static metadata only.
 export interface PresetsResult { status: string; day: 8; count: number; presets: import("./presets").CrisisPreset[]; honesty_note: string; next_step: string }
 export async function fetchPresets(signal?: AbortSignal): Promise<PresetsResult> {
-  const res = await fetch(`${API_BASE_URL}/api/presets`, { signal, cache: "no-store" });
+  const res = await apiFetch(`/api/presets`, { signal, cache: "no-store" });
   if (!res.ok) throw new Error(`Backend /api/presets failed: ${res.status}`);
   return res.json();
 }
