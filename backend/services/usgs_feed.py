@@ -236,3 +236,4 @@ async def fetch_usgs_live_events(
             "(for OpenStreetMap Overpass hospital/shelter lookup) and telemetry field report."
         ),
     }
+
