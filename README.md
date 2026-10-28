@@ -7,7 +7,7 @@
 [![Meta Hackathon](https://img.shields.io/badge/Meta_Global_AI_Hackathon-Push_the_Frontier_2026-0668E1?style=for-the-badge&logo=meta&logoColor=white)](https://github.com/Sameer769dev/CrisisGrid)
 [![Meta Model API](https://img.shields.io/badge/Inference-api.meta.ai%2Fv1_Only_(5_Models)-00C853?style=for-the-badge)](./AGENTS.md)
 [![Trust Layer](https://img.shields.io/badge/Trust_Layer-Deterministic_Python_Geometry-FFD600?style=for-the-badge)](./backend/services/verifiable_corridor_engine.py)
-[![Offline Tests](https://img.shields.io/badge/Offline_Test_Suite-215%2F215_Passing-00C853?style=for-the-badge)](./backend/README.md)
+[![Offline Tests](https://img.shields.io/badge/Offline_Test_Suite-236%2F236_Passing-00C853?style=for-the-badge)](./backend/README.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=for-the-badge)](./LICENSE)
 
 **`sam-3.1` Parallel Segmentation** · **`muse-voice-transcribe-1.0` Radio ASR** · **`muse-spark-1.3` Multimodal Triage & Re-Route** · **Deterministic Python Verifier + OSM** · **`muse-wonder-1.0` High-Effort Dispatch** · **`muse-image-1.0` Tactical Briefing Cards**
@@ -41,7 +41,7 @@ When floods, earthquakes, wildfires, or landslides strike anywhere in the world,
 | :--- | :--- | :--- |
 | **1. Universal Global Impact** | Floods, wildfires, and earthquakes affect every continent. Nobody needs local cultural context to immediately grasp why saving 45 minutes during emergency triage saves lives. | Operates on any aerial, drone, or street-level frame worldwide, enriched by global **OpenStreetMap Overpass API** hospital, clinic, fire, and police station lookups whenever GPS coordinates are supplied. |
 | **2. Impossible to Call a "Simple Image Analyzer"** | A single VLM prompt wrapper cannot safely coordinate multi-unit disaster response or certify physical route geometry. | Combines **all 5 Meta frontier modalities** (`sam-3.1`, `muse-voice-transcribe-1.0`, `muse-spark-1.3`, `muse-wonder-1.0`, `muse-image-1.0`) with a **zero-LLM deterministic geometric verifier**, closed-loop self-correction, before/after damage delta, and multi-sector triage ranking. |
-| **3. Zero Need to Film Local Footage** | Judges can run the full pipeline in 1 click without custom hardware or regional footage. | Ships with **3 pre-loaded 1-click global disaster presets** (Urban Flood Corridor, Earthquake Bridge & Rubble Triage, Wildfire Evacuation & Helipad Finder), real emergency radio WAV audio, and a clean text fallback. |
+| **3. Zero Need to Film Local Footage** | Judges can run the full pipeline in 1 click without custom hardware or regional footage. | Ships with **9 built-in aerial disaster test scenes** across 6 hazard categories (flood, earthquake, landslide, cyclone, tornado, wildfire, plus post-clearance pair), **Live USGS Seismic Telemetry** (`GET /api/usgs/live`), real emergency radio WAV audio, and a clean text fallback. |
 
 ---
 
@@ -387,17 +387,19 @@ CrisisGrid/
 ├── docs/
 │   └── ARCHITECTURE.md              # Deep-dive engineering specification & mathematical proofs
 ├── backend/
-│   ├── README.md                    # Backend setup, 18 endpoints & 7 offline test suites
-│   ├── main.py                      # FastAPI application (v0.8.0-day8)
+│   ├── README.md                    # Backend setup, 21 endpoints & 8 offline test suites (236 assertions)
+│   ├── main.py                      # FastAPI application (v1.0.0)
+│   ├── modal_app.py                 # Modal.com Serverless ASGI deployment (4 vCPUs, min_containers=1, gpu=None)
 │   ├── config.py                    # Single MODEL_API_KEY loader & AsyncOpenAI client (api.meta.ai/v1)
 │   ├── requirements.txt             # Python dependencies (FastAPI, openai, httpx, Pillow, pydantic)
-│   ├── test_meta_api.py             # Day 1 offline parser self-test + optional --live Meta API pings
-│   ├── test_sam_hazard_scanner.py   # Day 2 offline parallel sam-3.1 scanner tests (18 assertions)
-│   ├── test_voice_and_triage.py     # Day 3 offline WAV/ASR & Spark triage tests (38 assertions)
-│   ├── test_verifiable_corridor_engine.py # Day 4 offline geometry, mask IoU & re-route tests (48 assertions)
-│   ├── test_wonder_commander.py     # Day 5 offline dispatch guardrails & pipeline tests (55 assertions)
-│   ├── test_damage_delta.py         # Day 7 offline damage delta, clearance & sector tests (24 assertions)
-│   ├── test_presets.py              # Day 8 offline preset catalogue & asset tests (25 assertions)
+│   ├── test_meta_api.py             # Offline parser self-test + optional --live Meta API pings (7 assertions)
+│   ├── test_sam_hazard_scanner.py   # Offline parallel sam-3.1 scanner tests (18 assertions)
+│   ├── test_voice_and_triage.py     # Offline WAV/ASR & Spark triage tests (38 assertions)
+│   ├── test_verifiable_corridor_engine.py # Offline geometry, mask IoU & re-route tests (48 assertions)
+│   ├── test_wonder_commander.py     # Offline dispatch guardrails & pipeline tests (55 assertions)
+│   ├── test_damage_delta.py         # Offline damage delta, clearance & sector tests (24 assertions)
+│   ├── test_presets.py              # Offline preset catalogue & asset tests (25 assertions)
+│   ├── test_usgs_and_modal.py       # Offline USGS live feed & Modal CPU runtime tests (21 assertions)
 │   └── services/
 │       ├── sam_parser.py            # Deterministic regex parser for sam-3.1 <0f>..<|box|><|mask|> output
 │       ├── sam_hazard_scanner.py    # Parallel async sam-3.1 scanner (1 noun phrase per request)
