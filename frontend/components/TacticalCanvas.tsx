@@ -40,6 +40,22 @@ function statusColor(s: string) {
   return s === "verified" ? "#00C853" : s === "rejected" ? "#FF2D20" : "#FFD600";
 }
 
+function drawBadge(ctx: CanvasRenderingContext2D, text: string, rawX: number, rawY: number, accent: string, canvasW: number, canvasH: number) {
+  ctx.font = "bold 12px monospace";
+  const padX = 7;
+  const h = 22;
+  const tw = Math.ceil(ctx.measureText(text).width) + padX * 2;
+  const x = Math.min(canvasW - tw - 6, Math.max(6, rawX));
+  const y = Math.min(canvasH - h - 6, Math.max(6, rawY));
+  ctx.fillStyle = "#111";
+  ctx.fillRect(x, y, tw, h);
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, tw, h);
+  ctx.fillStyle = "#fff";
+  ctx.fillText(text, x + padX, y + 15);
+}
+
 export default function TacticalCanvas(p: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -62,7 +78,6 @@ export default function TacticalCanvas(p: Props) {
     const canvas = canvasRef.current; if (!canvas) return;
     const ctx = canvas.getContext("2d"); if (!ctx) return;
     ctx.clearRect(0, 0, W, canvasH);
-    // Background + optional source image (contain-fit, letterboxed on paper).
     ctx.fillStyle = "#FAFAF5"; ctx.fillRect(0, 0, W, canvasH);
     let ox = 0, oy = 0, dw = W, dh = canvasH;
     if (imgRef.current && imgSize) {
@@ -78,42 +93,39 @@ export default function TacticalCanvas(p: Props) {
       ctx.font = "bold 22px monospace"; ctx.fillStyle = "#111";
       ctx.fillText("NO IMAGE LOADED", 24, 52);
       ctx.font = "14px monospace";
-      ctx.fillText("Upload aerial / drone / street imagery, then run STEP 1 - SCAN.", 24, 80);
+      ctx.fillText("Select a test scene in Mission Control or upload aerial / drone imagery, then run STEP 1 - SCAN.", 24, 80);
       ctx.fillText("Hazards render RED, passable infrastructure GREEN,", 24, 102);
       ctx.fillText("unverified proposals YELLOW. Only the Python verifier turns a route green.", 24, 124);
     }
     const X = (n: number) => ox + n * dw; const Y = (n: number) => oy + n * dh;
-    // Detections: translucent fill + thick border + label chip.
+    // Detections: translucent fill + thick border + high-contrast label chip.
     for (const d of p.detections) {
       if (!p.visibleConcepts.has(d.concept)) continue;
       const x1 = X(d.bbox.x_min), y1 = Y(d.bbox.y_min), x2 = X(d.bbox.x_max), y2 = Y(d.bbox.y_max);
       const isSel = p.selected?.kind === "detection" && p.selected.detection === d;
-      ctx.fillStyle = d.kind === "hazard" ? "rgba(255,45,32,0.28)" : "rgba(0,200,83,0.28)";
+      const col = d.color || (d.kind === "hazard" ? "#FF2D20" : "#00C853");
+      ctx.fillStyle = d.kind === "hazard" ? "rgba(255,45,32,0.26)" : "rgba(0,200,83,0.26)";
       ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
-      ctx.strokeStyle = d.color || (d.kind === "hazard" ? "#FF2D20" : "#00C853");
+      ctx.strokeStyle = col;
       ctx.lineWidth = isSel ? 5 : 3; ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
       if (isSel) { ctx.strokeStyle = "#111"; ctx.lineWidth = 1.5; ctx.strokeRect(x1 - 5, y1 - 5, x2 - x1 + 10, y2 - y1 + 10); }
       const label = `${d.concept.toUpperCase()} ${(d.area_fraction * 100).toFixed(1)}%`;
-      ctx.font = "bold 11px monospace";
-      const tw = ctx.measureText(label).width + 10;
-      ctx.fillStyle = "#111"; ctx.fillRect(x1, Math.max(0, y1 - 18), tw, 18);
-      ctx.fillStyle = "#fff"; ctx.fillText(label, x1 + 5, Math.max(13, y1 - 5));
+      drawBadge(ctx, label, x1, y1 - 24, col, W, canvasH);
     }
-    // Landing zones: circle + crosshair.
+    // Landing zones: circle + crosshair + high-contrast badge.
     if (p.showZones) for (const z of p.zones) {
-      const cx = X(z.center.x), cy = Y(z.center.y), r = Math.max(10, z.radius * dw);
+      const cx = X(z.center.x), cy = Y(z.center.y), r = Math.max(12, z.radius * dw);
       const col = statusColor(z.status);
       const isSel = p.selected?.kind === "zone" && p.selected.zone.id === z.id;
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fillStyle = z.status === "verified" ? "rgba(0,200,83,0.30)" : z.status === "rejected" ? "rgba(255,45,32,0.30)" : "rgba(255,214,0,0.35)";
-      ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = isSel ? 5 : 3; ctx.stroke();
+      ctx.fillStyle = z.status === "verified" ? "rgba(0,200,83,0.32)" : z.status === "rejected" ? "rgba(255,45,32,0.32)" : "rgba(255,214,0,0.36)";
+      ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = isSel ? 5 : 3.5; ctx.stroke();
       ctx.beginPath(); ctx.moveTo(cx - 8, cy); ctx.lineTo(cx + 8, cy); ctx.moveTo(cx, cy - 8); ctx.lineTo(cx, cy + 8);
       ctx.strokeStyle = "#111"; ctx.lineWidth = 2; ctx.stroke();
-      ctx.font = "bold 11px monospace"; ctx.fillStyle = "#111";
-      ctx.fillText(`${z.id.toUpperCase()} ${z.status.toUpperCase()}`, cx + r + 6, cy + 4);
       if (z.status === "rejected") { ctx.strokeStyle = "#FF2D20"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(cx - r * 0.7, cy - r * 0.7); ctx.lineTo(cx + r * 0.7, cy + r * 0.7); ctx.moveTo(cx + r * 0.7, cy - r * 0.7); ctx.lineTo(cx - r * 0.7, cy + r * 0.7); ctx.stroke(); }
+      drawBadge(ctx, `${z.id.toUpperCase()} · ${z.status.toUpperCase()}`, cx + r + 8, cy - 11, col, W, canvasH);
     }
-    // Corridors: polyline with waypoint nodes.
+    // Corridors: polyline with waypoint nodes + high-contrast badge.
     if (p.showCorridors) for (const c of p.corridors) {
       if (c.points.length < 2) continue;
       const col = statusColor(c.status);
@@ -126,9 +138,8 @@ export default function TacticalCanvas(p: Props) {
       ctx.stroke(); ctx.setLineDash([]);
       for (const pt of c.points) { ctx.beginPath(); ctx.arc(X(pt.x), Y(pt.y), 5, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = "#111"; ctx.lineWidth = 2; ctx.stroke(); }
       const mid = c.points[Math.floor(c.points.length / 2)];
-      ctx.font = "bold 11px monospace"; ctx.fillStyle = "#111";
-      ctx.fillText(`${c.id.toUpperCase()} ${c.status.toUpperCase()}`, X(mid.x) + 8, Y(mid.y) - 8);
-      if (c.status === "rejected") { const a = c.points[0], b = c.points[c.points.length - 1]; ctx.strokeStyle = "#FF2D20"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(X(a.x) - 8, Y(a.y) - 8); ctx.lineTo(X(a.x) + 8, Y(a.y) + 8); ctx.moveTo(X(a.x) + 8, Y(a.y) - 8); ctx.lineTo(X(a.x) - 8, Y(a.y) + 8); ctx.stroke(); void b; }
+      if (c.status === "rejected") { const a = c.points[0]; ctx.strokeStyle = "#FF2D20"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(X(a.x) - 8, Y(a.y) - 8); ctx.lineTo(X(a.x) + 8, Y(a.y) + 8); ctx.moveTo(X(a.x) + 8, Y(a.y) - 8); ctx.lineTo(X(a.x) - 8, Y(a.y) + 8); ctx.stroke(); }
+      drawBadge(ctx, `${c.id.toUpperCase()} · ${c.status.toUpperCase()}`, X(mid.x) + 10, Y(mid.y) - 14, col, W, canvasH);
     }
     ctx.lineWidth = 3; ctx.strokeStyle = "#111"; ctx.strokeRect(2, 2, W - 4, canvasH - 4);
   }, [canvasH, imgSize, p.detections, p.corridors, p.zones, p.visibleConcepts, p.showCorridors, p.showZones, p.selected]);
@@ -148,7 +159,6 @@ export default function TacticalCanvas(p: Props) {
 
   function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
     const n = toNorm(e); if (!n) { p.onInspect(null); return; }
-    // Zones first (small targets), then corridors (near a waypoint/segment), then boxes (smallest containing).
     if (p.showZones) for (const z of p.zones) {
       if (Math.hypot(z.center.x - n.x, z.center.y - n.y) <= Math.max(z.radius, 0.03)) { p.onInspect({ kind: "zone", zone: z }); return; }
     }

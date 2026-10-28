@@ -488,7 +488,7 @@ def build_triage_user_text(transcript: str, scan_summary: dict[str, Any]) -> str
     return (
         "FIELD RESPONDER REPORT (transcript):\n"
         f"{transcript}\n\n"
-        "DETERMINISTIC sam-3.1 SEGMENTATION SUMMARY (Day 2, mask payloads stripped; "
+        "DETERMINISTIC sam-3.1 SEGMENTATION SUMMARY (mask payloads stripped; "
         "boxes are normalized [x_min, y_min, x_max, y_max]):\n"
         f"{json.dumps(scan_summary, indent=2)}\n\n"
         "Assess urgency, rank triage priorities, and propose candidate evacuation "

@@ -359,7 +359,7 @@ JSON schema (exact keys):
 
 def build_wonder_user_text(context: dict[str, Any]) -> str:
     return (
-        "VERIFIED OPERATING PICTURE (deterministic Day 4 verifier output; "
+        "VERIFIED OPERATING PICTURE (deterministic geometry verifier output; "
         "rejected candidates appear as IDs only, with no geometry):\n"
         f"{json.dumps(context, indent=2)}\n\n"
         "Produce the autonomous multi-unit dispatch protocol as ONE JSON object. "
@@ -449,6 +449,8 @@ def sanitize_dispatch_plan(
     kind_by_id.update({z["id"]: "landing_zone" for z in verified_state["landing_zones"]})
 
     data = plan.model_dump()
+    if data.get("operation_name"):
+        data["operation_name"] = re.sub(r"\s*[-–—]?\s*\bday\s*\d+\b", "", str(data["operation_name"]), flags=re.IGNORECASE).strip() or "Verified Emergency Dispatch"
     guardrail_actions: list[dict[str, Any]] = []
     seen_ids: dict[str, int] = {}
     units_out: list[dict[str, Any]] = []

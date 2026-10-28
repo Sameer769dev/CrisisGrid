@@ -487,6 +487,7 @@ export default function Home() {
           {triage && <span className="stage-chip">TRIAGE: {triage.triage.severity.toUpperCase()} - URGENCY {triage.triage.urgency_score}/100</span>}
         </div>
       </section>
+
       <div className="grid">
         <div className="main-col">
           <TacticalCanvas imageUrl={viewMode === "delta" && afterUrl ? afterUrl : imageUrl} detections={canvasDetections} corridors={corridors} zones={zones}
@@ -511,27 +512,106 @@ export default function Home() {
             </div>
             {scan && <p className="panel-note">Scan: {scan.summary.total_detections} detections / {scan.summary.total_masks} masks across {scan.summary.concepts_succeeded}/9 concepts in {Math.round(scan.summary.total_latency_ms)} ms. Status stays <strong>UNVERIFIED SEGMENTATION ONLY</strong> until the deterministic geometry verifier rules on routes.</p>}
           </section>
-
-          {triage && (
-            <section className="panel" aria-label="Triage summary">
-              <div className="panel-head"><span>TRIAGE - muse-spark-1.3</span><span className="tag tag-yellow">{triage.triage.severity.toUpperCase()} - {triage.triage.urgency_score}/100</span></div>
-              <p className="panel-note"><strong>{triage.triage.incident_type}:</strong> {triage.triage.summary}</p>
-              <p className="panel-note"><strong>Transcript ({triage.input.source.replace("_", " ")}):</strong> {triage.transcript || "(no transcript)"}</p>
-              <p className="panel-note"><strong>People at risk:</strong> {triage.triage.people_at_risk.count_estimate ?? "unknown"} - {triage.triage.people_at_risk.description}</p>
-              <h4 className="subhead pad">RANKED PRIORITIES (PROPOSALS - NOT ORDERS)</h4>
-              <ol className="phase-list pad-list">
-                {triage.triage.priorities.map((pr) => (<li key={pr.rank}><strong>#{pr.rank} {pr.category}:</strong> {pr.action} <small>({pr.rationale})</small></li>))}
-              </ol>
-              <p className="panel-note">Candidates proposed: {corridors.length} corridor(s), {zones.length} landing zone(s) - all YELLOW until deterministic Python verification. Missing info: {triage.triage.missing_information.join("; ") || "none declared"}.</p>
-              {verify && <p className="panel-note"><strong>Verifier verdict:</strong> {verify.status.toUpperCase()} - dispatch ready: {verify.dispatch_ready ? "YES" : "NO"}. Correction attempts used: {verify.correction.attempts_used}/{verify.correction.max_attempts} ({verify.correction.status}). Facilities (OSM): {verify.emergency_facilities.status} - {verify.emergency_facilities.facilities.slice(0, 5).map((f) => `${f.name} (${f.type}, ${Math.round(f.distance_m)} m)`).join("; ") || "none / not queried"}</p>}
-            </section>
-          )}
         </div>
         <div className="side">
           <AgentTrace entries={trace} />
-          <DispatchConsole dispatch={dispatch} dispatchBlock={dispatchBlock} verify={verify} running={stage.dispatch === "running"}
-            canDispatch={!!verify?.dispatch_ready} onDispatch={handleDispatch} includeCard={includeCard} onIncludeCardChange={setIncludeCard} />
         </div>
+      </div>
+
+      <div className="results-stack">
+        {triage && (
+          <section className="panel triage-panel" aria-label="Triage summary">
+            <div className="panel-head">
+              <span>TRIAGE &amp; CANDIDATE ASSESSMENT — muse-spark-1.3</span>
+              <span className={`tag ${triage.triage.severity === "critical" || triage.triage.severity === "high" ? "tag-red" : "tag-yellow"}`}>
+                {triage.triage.severity.toUpperCase()} — URGENCY {triage.triage.urgency_score}/100
+              </span>
+            </div>
+
+            <div className="triage-kpi-row">
+              <span className="tag">INCIDENT: {triage.triage.incident_type.toUpperCase()}</span>
+              <span className="tag">SOURCE: {triage.input.source.replace(/_/g, " ").toUpperCase()}</span>
+              <span className="tag tag-yellow">PEOPLE AT RISK: {triage.triage.people_at_risk.count_estimate ?? "UNKNOWN"}</span>
+              <span className="tag">PROPOSED CORRIDORS: {corridors.length}</span>
+              <span className="tag">PROPOSED LANDING ZONES: {zones.length}</span>
+              {verify && (
+                <span className={`tag ${verify.dispatch_ready ? "tag-green" : "tag-red"}`}>
+                  VERIFIER: {verify.status.toUpperCase()} ({verify.final_verification.summary.verified} VERIFIED / {verify.final_verification.summary.rejected} REJECTED)
+                </span>
+              )}
+            </div>
+
+            <div className="triage-grid">
+              <div className="triage-col">
+                <div className="summary-card">
+                  <div className="summary-card-label">EXECUTIVE SITUATION SUMMARY</div>
+                  <p><strong>{triage.triage.incident_type.toUpperCase()}:</strong> {triage.triage.summary}</p>
+                </div>
+
+                <div className="summary-card">
+                  <div className="summary-card-label">FIELD REPORT / RADIO TRANSCRIPT ({triage.input.source.replace(/_/g, " ").toUpperCase()})</div>
+                  <p>{triage.transcript || "(no transcript)"}</p>
+                </div>
+
+                <div className="summary-card">
+                  <div className="summary-card-label">PEOPLE AT RISK &amp; INTELLIGENCE GAPS</div>
+                  <p>
+                    <strong>Estimated Count:</strong> {triage.triage.people_at_risk.count_estimate ?? "Unknown"} — {triage.triage.people_at_risk.description}
+                  </p>
+                  <p style={{ marginTop: 6 }}>
+                    <strong>Missing Information:</strong> {triage.triage.missing_information.join("; ") || "None declared"}
+                  </p>
+                </div>
+
+                {verify && (
+                  <div className="summary-card">
+                    <div className="summary-card-label">DETERMINISTIC PYTHON VERIFIER &amp; OSM FACILITIES</div>
+                    <p>
+                      <strong>Verdict:</strong> {verify.status.toUpperCase()} · <strong>Dispatch Ready:</strong> {verify.dispatch_ready ? "YES" : "NO"} · <strong>Re-route Loops:</strong> {verify.correction.attempts_used}/{verify.correction.max_attempts} ({verify.correction.status})
+                    </p>
+                    <p style={{ marginTop: 6 }}>
+                      <strong>OpenStreetMap Facilities ({verify.emergency_facilities.status}):</strong>{" "}
+                      {verify.emergency_facilities.facilities.slice(0, 5).map((f) => `${f.name} (${f.type}, ${Math.round(f.distance_m)} m)`).join(" · ") || "None in radius / not queried"}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="triage-col">
+                <div className="summary-card">
+                  <div className="summary-card-label">RANKED RESPONSE PRIORITIES (PROPOSALS — NOT ORDERS)</div>
+                  <div className="priority-list">
+                    {triage.triage.priorities.map((pr) => (
+                      <div key={pr.rank} className="priority-item">
+                        <div className="priority-item-head">
+                          <span className="tag tag-yellow">PRIORITY #{pr.rank}</span>
+                          <span className="tag">{pr.category.toUpperCase()}</span>
+                          {pr.location_hint && <small className="priority-loc">{pr.location_hint}</small>}
+                        </div>
+                        <div className="priority-action">{pr.action}</div>
+                        <div className="priority-rationale">{pr.rationale}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <p style={{ marginTop: 10, fontSize: 12 }}>
+                    Candidates proposed: <strong>{corridors.length} corridor(s)</strong>, <strong>{zones.length} landing zone(s)</strong> — held YELLOW until deterministic Python verification proves ≤10% hazard intersection.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        <DispatchConsole
+          dispatch={dispatch}
+          dispatchBlock={dispatchBlock}
+          verify={verify}
+          running={stage.dispatch === "running"}
+          canDispatch={!!verify?.dispatch_ready}
+          onDispatch={handleDispatch}
+          includeCard={includeCard}
+          onIncludeCardChange={setIncludeCard}
+        />
       </div>
 
       <div style={{ marginTop: 18 }}>
