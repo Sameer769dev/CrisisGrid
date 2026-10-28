@@ -1,6 +1,9 @@
 // Typed client for the CrisisGrid FastAPI backend. No secrets here - MODEL_API_KEY stays backend-only.
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+export const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  "http://localhost:8000"
+).replace(/\/+$/, "");
 
 export interface HealthStatus {
   status: string;
