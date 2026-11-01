@@ -18,3 +18,8 @@ dist/
 .vscode/
 frontend/.env.local
 *.tsbuildinfo
+demo_3min/
+*.webm
+*.mp4
+*.wav
+
