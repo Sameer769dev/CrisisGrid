@@ -1,0 +1,16 @@
+{"id": "sequence.applyVideoTransition", "params": {"clip": 28, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 28, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 30, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 30, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 32, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 32, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 34, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 34, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 36, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 36, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 38, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 38, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 40, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 40, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 42, "effect": "cross_dissolve", "frames": 14, "edge": "out"}}
+{"id": "sequence.applyVideoTransition", "params": {"clip": 42, "effect": "cross_dissolve", "frames": 14, "edge": "in"}}

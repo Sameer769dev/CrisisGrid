@@ -11,11 +11,16 @@ All render deliverables are located in your project directory:
 
 | Deliverable Asset | File Path | Format & Specs |
 |---|---|---|
+| **Master Complete Demo (Burned Subtitles)** | `docs/CrisisGrid_3Min_Complete_Demo.mp4` | 1080p MP4 (90.68 MB, 162.00s) with 2.39:1 letterbox cutaways, tactical kinetic subtitles, 3-movement dynamic score & AI video foley |
+| **FilmCraft Master Render** | `docs/CrisisGrid_3Min_Cinematic_Master_FilmCraft.mp4` | 1080p MP4 (198.38 MB, 162.00s) directly exported from FilmCraft NLE timeline |
+| **FilmCraft Project File** | `docs/CrisisGrid_Cinematic_Demo.fcproj` | Open-source FilmCraft NLE project with V1, V2, A1 tracks, item mappings, and cross-dissolves |
+| **Tactical Kinetic Subtitles** | `docs/CrisisGrid_Tactical_Subtitles.ass` | ASS subtitle file (Impact 54pt, thick outline, yellow/green/red keyword highlights) |
+| **Master Audio (Mixed & Normalized)** | `docs/CrisisGrid_3Min_Master_Audio_Mixed.wav` | 48 kHz, 16-bit Stereo PCM (Dialogue + 3-movement score + native AI video foley + tactical SFX, -16 LUFS) |
 | **Clean Screen Recording** | `docs/CrisisGrid_3Min_Clean_Screen_Recording.mp4` | 1080p (1920x1080), 30 fps, H.264, no burnt-in text/watermarks |
-| **Complete Reference Demo** | `docs/CrisisGrid_3Min_Complete_Demo.mp4` | 1080p MP4 with synced mixed voiceover & tactical SFX |
-| **Master Voiceover Stem** | `docs/CrisisGrid_3Min_Master_Voiceover.wav` | 44.1 kHz, 16-bit Stereo PCM (Pure dialogue stem, Gemini 3.8 Flash TTS "Puck") |
-| **Master Audio (Mixed)** | `docs/CrisisGrid_3Min_Master_Audio_Mixed.wav` | 44.1 kHz, 16-bit Stereo PCM (Dialogue + subtle tactical SFX + ambient drone) |
-| **Individual Voice Acts** | `demo_3min/voice/act1_intro_hook.wav`<br>`demo_3min/voice/act2_sam_and_voice.wav`<br>`demo_3min/voice/act3_triage_and_reroute.wav`<br>`demo_3min/voice/act4_wonder_dispatch.wav`<br>`demo_3min/voice/act5_usgs_clearance_outro.wav` | Individual 24kHz/44.1kHz stems for modular rearrangement in your NLE timeline |
+| **Master Voiceover Stem** | `docs/CrisisGrid_3Min_Master_Voiceover.wav` | 48 kHz, 16-bit Stereo PCM (Pure calibrated dialogue stem) |
+| **Movement 1: Tension Bed** | `docs/Minimal Sub-Bass & Ticking Edit.wav` | Act 1 intro tension score |
+| **Movement 2: Driving Score** | `docs/Dark Hybrid Cinematic Score (Take 1).wav` | Act 2–4 intense hybrid action score |
+| **Movement 3: Triumphant Outro** | `docs/Uplifting Triumphant Resolution.wav` | Act 5 resolution & clearance score |
 
 ---
 
@@ -131,7 +136,37 @@ Use this timeline to drop markers, title cards, zooms, and lower-thirds in Adobe
 
 ---
 
-## 3. Recommended NLE Setup (Premiere / DaVinci / Final Cut)
+## 3. FilmCraft Automated Cinematic Assembly Pipeline
+
+CrisisGrid includes a 100% automated headless production pipeline built on the open-source **FilmCraft** NLE engine (`filmcraft-cli`):
+
+```bash
+# 1. Generate 2.39:1 widescreen letterbox black bars on the 8 AI video cutaways
+python scripts/prepare_letterbox_clips.py
+
+# 2. Build composite 3-movement dynamic audio score with native AI video foley + tactical SFX
+python scripts/build_full_dynamic_audio.py
+
+# 3. Generate high-impact tactical kinetic animated dynamic subtitles
+python scripts/generate_mrbeast_subtitles.py
+
+# 4. Assemble FilmCraft timeline sequence (V1, V2, A1) & render 1080p master
+python scripts/build_filmcraft_master.py
+
+# 5. Burn dynamic subtitles and master audio onto final deliverable
+python scripts/burn_mrbeast_subtitles.py
+```
+
+### Visual & Audio Architecture:
+- **Video 1 (Base UI):** Full $1920 \times 1080$ edge-to-edge software command center screencast.
+- **Video 2 (B-Roll Cutaways):** 2.39:1 Anamorphic Cinema Letterbox (136px matte black bars top/bottom) with 14-frame cross-dissolve transitions.
+- **Audio 1 (Mixed Master):** Multi-movement soundtrack (-18 dB) + AI Video Foley (-16 dB) + Tactical UI SFX (-10 dB) + Master Voiceover (0 dB), EBU R128 loudness normalized to -16 LUFS.
+- **Subtitles:** Content creator / Tactical format (Impact 54pt, 4.5px stroke, 2.0px shadow, centered lower-third, with `#FFE600` yellow, `#00FF20` green, and `#FF2020` red keyword highlights).
+- **Hard Limit Compliance:** Total duration is strictly **2m 42.0s (162.00s)**, comfortably inside the Devpost 180s hard limit.
+
+---
+
+## 4. Recommended Manual NLE Setup (Premiere / DaVinci / Final Cut)
 
 1. **Project Settings:** 1920x1080 resolution, 30.00 fps or 29.97 fps, Rec.709 color space.
 2. **Audio Track Setup:**
