@@ -483,6 +483,36 @@ CrisisGrid/
 
 ---
 
+## 👤 Author & Lead Engineer
+
+<div align="center">
+
+### **Samir Baral**
+**Full-Stack & Android Developer • Nepal 🇳🇵**  
+*Bachelor of Information Management (BIM) — Tribhuvan University*
+
+<p align="center">
+  <a href="mailto:baralsamir941@gmail.com"><img src="https://img.shields.io/badge/Email-baralsamir941%40gmail.com-ea4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
+  <a href="https://github.com/Sameer769dev"><img src="https://img.shields.io/badge/GitHub-Sameer769dev-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
+  <a href="https://sameer769dev.github.io/traffic-rule-defense/"><img src="https://img.shields.io/badge/Projects-Live%20Demos-38bdf8?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Projects" /></a>
+</p>
+
+</div>
+
+> *"I am a passionate Full-Stack and Android Developer based in Nepal 🇳🇵 pursuing my Bachelor of Information Management (BIM) at Tribhuvan University.*
+>
+> *I enjoy bridging the gap between elegant user interfaces and robust, scalable backend architectures. Whether it's diagnosing high-precision network metrics in native Android apps, engineering interactive web platforms, or designing relational databases, I build with performance, clarity, and user experience in mind."*
+
+- 🔭 **Current Focus:** Engineering native & hybrid mobile applications, game development and full-stack web platforms (Traffic Rule Awareness System).
+- 💡 **Passion Areas:** Mobile Performance Optimization, Network Diagnostics, Clean Architecture, Reactive State Management, and UX Design.
+- 🎓 **Education:** BIM (Bachelor of Information Management), Tribhuvan University.
+- 🌱 **Currently Exploring:** Advanced Kotlin Coroutines/Flow, Jetpack Compose, Distributed Microservices & Cloud Native tools.
+- 💬 **Ask me about:** Android (Kotlin), TypeScript, React, Node.js, REST API design, or SQL schema architecture.
+- ⚡ **Fun Fact:** When I'm not writing code, I love analyzing system performance bottlenecks and exploring slick UI animations!
+
+
+---
+
 <div align="center">
 
 Built for the **Meta Global AI Developer Hackathon — "Push the Frontier" (Oct 26 – Nov 4, 2026)** · Licensed under the [MIT License](./LICENSE)
