@@ -38,7 +38,13 @@ except ImportError:  # backend/ imports (uvicorn main:app, tests)
     from services.sam_hazard_scanner import extract_output_text, sniff_media_type
 
 TRANSCRIBE_MODEL = "muse-voice-transcribe-1.0"
-TRIAGE_MODEL = "muse-spark-1.3"
+try:
+    from backend.config import TRIAGE_MODEL
+except ImportError:
+    try:
+        from config import TRIAGE_MODEL
+    except ImportError:
+        TRIAGE_MODEL = "muse-spark-1.3"
 ASR_ENDPOINT_PATH = "/asr/transcribe"
 SUPPORTED_WAV_SAMPLE_RATES = (16000, 24000)
 MAX_AUDIO_BYTES = 25 * 1024 * 1024  # field-radio upload ceiling

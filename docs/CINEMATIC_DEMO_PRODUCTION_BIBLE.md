@@ -173,3 +173,4 @@ A3: Tactical SFX & UI Chirps
 2. **Dynamic 3D Camera Punch-ins:** Whenever a button is clicked, punch in from 100% $\rightarrow$ 112% scale with a 15-frame bezier curve. It makes web app screencasts feel like a high-budget Apple keynote.
 3. **Subtle CRT Scanlines:** Overlay a 1080p scanline PNG on the UI at `12% opacity` with blend mode set to `Overlay` or `Soft Light`. This gives the UI a military terminal command feel without hurting text legibility.
 4. **Music Ducking:** Set up an automatic sidechain compressor on your music track triggered by the voiceover track. Whenever the voice speaks, the music drops -8 dB; during natural pauses, the music punches through.
+

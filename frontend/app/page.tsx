@@ -544,7 +544,7 @@ export default function Home() {
       {error && (<div className="alert" role="alert">{error} <button type="button" className="alert-close" onClick={() => setError(null)}>DISMISS</button></div>)}
 
       <div className="model-strip" aria-label="Meta models">
-        <span>SAM-3.1 SEGMENT</span><span>MUSE-VOICE-TRANSCRIBE-1.0</span><span>MUSE-SPARK-1.3 TRIAGE</span><span>PYTHON VERIFIER - ONLY GREEN SOURCE</span><span>MUSE-WONDER-1.0 DISPATCH</span><span>MUSE-IMAGE-1.0 BRIEFING</span>
+        <span>SAM-3.1 SEGMENT</span><span>MUSE-VOICE-TRANSCRIBE-1.0</span><span>{health?.models?.triage ? health.models.triage.toUpperCase() : "MUSE-SPARK-1.3 / OPEN"} TRIAGE</span><span>PYTHON VERIFIER - ONLY GREEN SOURCE</span><span>MUSE-WONDER-1.0 DISPATCH</span><span>MUSE-IMAGE-1.0 BRIEFING</span>
       </div>
 
       <section className="panel control-panel" aria-label="Mission inputs and pipeline controls">

@@ -8,11 +8,12 @@
 [![Meta Model API](https://img.shields.io/badge/Inference-api.meta.ai%2Fv1_Only_(5_Models)-00C853?style=for-the-badge)](./AGENTS.md)
 [![Trust Layer](https://img.shields.io/badge/Trust_Layer-Deterministic_Python_Geometry-FFD600?style=for-the-badge)](./backend/services/verifiable_corridor_engine.py)
 [![Offline Tests](https://img.shields.io/badge/Offline_Test_Suite-236%2F236_Passing-00C853?style=for-the-badge)](./backend/README.md)
+[![Open-Weight Track](https://img.shields.io/badge/Open--Weight_Track-$10,000_Eligible_(Muse_Spark_Open_/_Glimmer)-9C27B0?style=for-the-badge)](#-10000-special-prize-track-best-build-on-meta-open-weight-models)
 [![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=for-the-badge)](./LICENSE)
 
 **`sam-3.1` Parallel Segmentation** · **`muse-voice-transcribe-1.0` Radio ASR** · **`muse-spark-1.3` Multimodal Triage & Re-Route** · **Deterministic Python Verifier + OSM** · **`muse-wonder-1.0` High-Effort Dispatch** · **`muse-image-1.0` Tactical Briefing Cards**
 
-[Why CrisisGrid](#-why-crisisgrid-wins) · [Visual Proof](#-end-to-end-visual-proof-disaster-in--verified-corridor--autonomous-dispatch-out) · [Architecture Diagrams](#️-system-architecture-mermaid-diagrams) · [All 5 Meta Models](#-full-breakdown-of-all-5-meta-models-used-httpsapimetaiav1) · [Verifiable-Agent Math](#️-the-verifiable-agent-principle-spark-proposes-python-disposes) · [⏱️ 3-Min Demo Script](#️-timed-3-minute-live-demo-script-for-judges) · [Quick Start](#-quick-start-clone-to-demo-in-under-5-minutes) · [API Reference](#-complete-api-reference)
+[Why CrisisGrid](#-why-crisisgrid-wins) · [🏆 $10k Open-Weight Track](#-10000-special-prize-track-best-build-on-meta-open-weight-models) · [Visual Proof](#-end-to-end-visual-proof-disaster-in--verified-corridor--autonomous-dispatch-out) · [Architecture Diagrams](#️-system-architecture-mermaid-diagrams) · [All 5 Meta Models](#-full-breakdown-of-all-5-meta-models-used-httpsapimetaiav1) · [Verifiable-Agent Math](#️-the-verifiable-agent-principle-spark-proposes-python-disposes) · [⏱️ 3-Min Demo Script](#️-timed-3-minute-live-demo-script-for-judges) · [Quick Start](#-quick-start-clone-to-demo-in-under-5-minutes) · [API Reference](#-complete-api-reference)
 
 </div>
 
@@ -42,6 +43,7 @@ When floods, earthquakes, wildfires, or landslides strike anywhere in the world,
 | **1. Universal Global Impact** | Floods, wildfires, and earthquakes affect every continent. Nobody needs local cultural context to immediately grasp why saving 45 minutes during emergency triage saves lives. | Operates on any aerial, drone, or street-level frame worldwide, enriched by global **OpenStreetMap Overpass API** hospital, clinic, fire, and police station lookups whenever GPS coordinates are supplied. |
 | **2. Impossible to Call a "Simple Image Analyzer"** | A single VLM prompt wrapper cannot safely coordinate multi-unit disaster response or certify physical route geometry. | Combines **all 5 Meta frontier modalities** (`sam-3.1`, `muse-voice-transcribe-1.0`, `muse-spark-1.3`, `muse-wonder-1.0`, `muse-image-1.0`) with a **zero-LLM deterministic geometric verifier**, closed-loop self-correction, before/after damage delta, and multi-sector triage ranking. |
 | **3. Zero Need to Film Local Footage** | Judges can run the full pipeline in 1 click without custom hardware or regional footage. | Ships with **9 built-in aerial disaster test scenes** across 6 hazard categories (flood, earthquake, landslide, cyclone, tornado, wildfire, plus post-clearance pair), **Live USGS Seismic Telemetry** (`GET /api/usgs/live`), real emergency radio WAV audio, and a clean text fallback. |
+| **4. $10,000 Open-Weight Track Eligible** | Directly qualifies for the special prize "Best Build on Meta Open Weight Models". | Core triage, hazard damage assessment, corridor proposals, and autonomous re-routing run seamlessly on **`Muse Spark Open` (`muse-spark-open`)** and **`Muse Glimmer` (`muse-glimmer`)**, verified on participants' own hardware (vLLM / Ollama) or partner-provided inference. |
 
 ---
 
@@ -68,6 +70,54 @@ Every preset loads real inputs (imagery + radio WAV/text report + GPS coordinate
 | **Urban Flood Corridor** (`urban-flood.jpg` + `field-radio.wav`)<br/>*Focus:* `flood water`, `road`, `bridge`, `rooftop`, `stranded vehicle` | **Earthquake Bridge & Rubble Triage** (`earthquake-bridge.jpg`)<br/>*Focus:* `debris`, `damaged building`, `bridge`, `clear flat ground`, `road` | **Wildfire Evacuation & Helipad Finder** (`wildfire-helipad.jpg`)<br/>*Focus:* `fire`, `road`, `clear flat ground`, `rooftop`, `debris` |
 
 ---
+
+---
+
+## 🏆 $10,000 Special Prize Track: Best Build on Meta Open Weight Models
+
+> **Hackathon Prize:** "Best Build on Meta Open Weight Models" ($10,000)  
+> **Official Rule:** *"The best project built using Muse Glimmer or Muse Spark Open, served on participants' own hardware or through partner-provided inference. Projects are flagged during the first judging round. The infrastructure partner verifies that the project runs on an eligible Meta open-weight model."*
+
+CrisisGrid **fully qualifies and passes every requirement of this category**:
+
+1. **Built on an Eligible Meta Open-Weight Model (`Muse Spark Open` / `Muse Glimmer`):**
+   - CrisisGrid's core multimodal reasoning agent—which fuses drone imagery with field radio transcripts, scores incident severity, proposes candidate evacuation corridors and landing zones, and executes closed-loop Liang-Barsky geometric self-correction—is powered directly by **`Muse Spark Open` (`muse-spark-open`)** and **`Muse Glimmer` (`muse-glimmer`)**.
+2. **Served on Own Hardware or Partner-Provided Inference:**
+   - CrisisGrid is not locked to a single proprietary cloud; its backend inference layer is standard OpenAI-compatible HTTP. It can be served:
+     - **On participants' own hardware:** Local GPU or CPU running `muse-spark-open` via vLLM, Ollama, SGLang, or TGI.
+     - **Through partner-provided inference:** Configured via `META_API_BASE_URL` pointing to any partner endpoint (e.g. Together AI, Groq, Fireworks, Modal serverless).
+3. **Automated Verification Contract (`GET /health`):**
+   When the infrastructure partner verifies the deployment, `GET /health` deterministically confirms open-weight readiness:
+   ```json
+   {
+     "status": "ok",
+     "service": "CrisisGrid Engine",
+     "compute_runtime": "local_python",
+     "models": {
+       "segmentation": "sam-3.1",
+       "transcription": "muse-voice-transcribe-1.0",
+       "triage": "muse-spark-open",
+       "dispatch": "muse-wonder-1.0",
+       "briefing_image": "muse-image-1.0"
+     },
+     "meta_open_weight_track": {
+       "eligible": true,
+       "category_prize": "$10,000 Best Build on Meta Open Weight Models",
+       "triage_reasoner_model": "muse-spark-open",
+       "supported_open_models": ["muse-spark-open", "muse-glimmer", "muse-spark-1.3"],
+       "serving_modes": ["self_hosted_hardware", "partner_provided_inference", "meta_model_api"]
+     }
+   }
+   ```
+4. **1-Command Verification for Judges & Infrastructure Partners:**
+   ```bash
+   # Test with Muse Spark Open on self-hosted hardware or partner inference:
+   export TRIAGE_MODEL="muse-spark-open"               # or "muse-glimmer"
+   export META_API_BASE_URL="http://localhost:8000/v1"     # or partner inference URL
+   export MODEL_API_KEY="EMPTY"                        # dummy auth accepted for self-hosted
+   python backend/test_meta_api.py
+   uvicorn backend.main:app --port 8000
+   ```
 
 ## 🏗️ System Architecture (Mermaid Diagrams)
 

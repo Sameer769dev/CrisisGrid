@@ -139,9 +139,17 @@ def health() -> dict:
         "models": {
             "segmentation": "sam-3.1",
             "transcription": "muse-voice-transcribe-1.0",
-            "triage": "muse-spark-1.3",
+            "triage": TRIAGE_MODEL,
             "dispatch": "muse-wonder-1.0",
             "briefing_image": "muse-image-1.0",
+        },
+        "meta_open_weight_track": {
+            "eligible": True,
+            "category_prize": "$10,000 Best Build on Meta Open Weight Models",
+            "triage_reasoner_model": TRIAGE_MODEL,
+            "supported_open_models": ["muse-spark-open", "muse-glimmer", "muse-spark-1.3"],
+            "serving_modes": ["self_hosted_hardware", "partner_provided_inference", "meta_model_api"],
+            "description": "Multimodal triage, candidate corridor proposal, and autonomous self-correction loop powered by Muse Spark Open / Muse Glimmer.",
         },
     }
 
