@@ -303,7 +303,6 @@ CrisisGrid/
 Full-Stack & Android Developer • Nepal 🇳🇵  
 - **GitHub:** [@Sameer769dev](https://github.com/Sameer769dev)  
 - **Email:** [baralsamir941@gmail.com](mailto:baralsamir941@gmail.com)  
-- **Projects & Portfolio:** [sameer769dev.github.io](https://sameer769dev.github.io/traffic-rule-defense/)
 
 ---
 
