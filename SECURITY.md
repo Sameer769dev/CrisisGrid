@@ -1,26 +1,37 @@
-# Security Policy & Credential Isolation
+# Security Policy
 
-## 1. Strict `MODEL_API_KEY` Protection
+## Supported Versions
 
-CrisisGrid authenticates with the official Meta Model API (`https://api.meta.ai/v1`) using a single environment variable: `MODEL_API_KEY`.
+CrisisGrid receives active security updates and dependency maintenance on the following release lines:
 
-To protect credentials across local development, CI, and hackathon judging:
+| Version | Supported          |
+| :---    | :---:              |
+| 1.0.x   | :white_check_mark: |
+| < 1.0   | :x:                |
 
-1. **Never Commit Secrets:** `.env`, `backend/.env`, and `frontend/.env.local` are strictly ignored by [`.gitignore`](./.gitignore). Only template files ([`.env.example`](./.env.example), [`backend/.env.example`](./backend/.env.example), [`frontend/.env.local.example`](./frontend/.env.local.example)) with empty placeholders are tracked in Git.
-2. **Backend-Only Isolation:** `MODEL_API_KEY` is read exclusively by [`backend/config.py`](./backend/config.py). It is never prefixed with `NEXT_PUBLIC_` and never sent to the browser.
-3. **Zero Leakage in Responses or Logs:**
-   - `GET /health` and `GET /api/config/status` return only a boolean `"model_api_key_configured": true | false`.
-   - Upstream exceptions from `https://api.meta.ai/v1` are mapped through `_meta_error()` in [`backend/main.py`](./backend/main.py) to sanitized HTTP `502`/`503` responses that never echo authorization headers or raw client objects.
+## Reporting a Vulnerability
 
-## 2. Verifying No Secrets Are Tracked
+If you discover a security vulnerability or potential credential issue in CrisisGrid, please do not disclose it publicly via GitHub issues or discussions.
 
-Before pushing commits, run:
+Instead, please report it through one of the following responsible disclosure channels:
 
-```bash
-git status --ignored
-python backend/test_meta_api.py
-```
+- **Primary Contact:** [baralsamir941@gmail.com](mailto:baralsamir941@gmail.com)
+- **GitHub Security Advisory:** Submit a confidential report via [GitHub Security Advisories](https://github.com/Sameer769dev/CrisisGrid/security/advisories/new)
 
-## 3. Reporting a Vulnerability
+### Report Details
+To assist in triage and resolution, please include:
+- A description of the vulnerability and its potential impact.
+- Steps to reproduce or a minimal proof-of-concept.
+- Affected endpoints, scripts, or dependencies.
+- Relevant system logs (with sensitive tokens or keys redacted).
 
-If you discover a potential credential leak or security issue in this repository, please open a GitHub issue or contact the repository maintainers directly.
+All security reports are acknowledged within 48 hours. Coordinated disclosure will follow after a patch has been tested and merged.
+
+## Credential Isolation & Environment Architecture
+
+CrisisGrid enforces server-side credential isolation and strict secret sanitization:
+
+- **Server-Side API Key Containment:** The Meta Model API key (`MODEL_API_KEY`) is consumed strictly within the Python backend runtime ([`backend/config.py`](./backend/config.py)). Credentials are never exposed to the client-side bundle or prefixed with client-exposed environment markers (`NEXT_PUBLIC_`).
+- **Sanitized Diagnostics:** Observability endpoints ([`GET /health`](./backend/main.py) and `GET /api/config/status`) report configuration readiness as boolean indicators without echoing bearer tokens or raw request headers.
+- **Error Shielding:** Upstream communication exceptions from external APIs are caught and transformed into sanitized HTTP `502` / `503` responses, preventing internal client configurations or authorization headers from appearing in stack traces.
+- **Source Control Cleanliness:** Local environment files (`.env`, `backend/.env`, `frontend/.env.local`) are explicitly excluded via [`.gitignore`](./.gitignore). Safe placeholder templates ([`.env.example`](./.env.example)) are provided for deployment configuration.

@@ -2,314 +2,178 @@
 
 # CrisisGrid
 
-### Autonomous Multimodal Disaster Triage, Infrastructure Assessment & Verifiable Emergency Dispatch Agent
+### Autonomous Multimodal Disaster Triage, Infrastructure Assessment & Verified Emergency Dispatch Agent
 
-[![Meta Hackathon](https://img.shields.io/badge/Meta_Global_AI_Hackathon-Push_the_Frontier_2026-0668E1?style=for-the-badge&logo=meta&logoColor=white)](https://github.com/Sameer769dev/CrisisGrid)
-[![Meta Model API](https://img.shields.io/badge/Inference-api.meta.ai%2Fv1_Only_(5_Models)-00C853?style=for-the-badge)](./AGENTS.md)
-[![Trust Layer](https://img.shields.io/badge/Trust_Layer-Deterministic_Python_Geometry-FFD600?style=for-the-badge)](./backend/services/verifiable_corridor_engine.py)
-[![Offline Tests](https://img.shields.io/badge/Offline_Test_Suite-236%2F236_Passing-00C853?style=for-the-badge)](./backend/README.md)
-[![Open-Weight Track](https://img.shields.io/badge/Open--Weight_Track-$10,000_Eligible_(Muse_Spark_Open_/_Glimmer)-9C27B0?style=for-the-badge)](#-10000-special-prize-track-best-build-on-meta-open-weight-models)
-[![License: MIT](https://img.shields.io/badge/License-MIT-111111?style=for-the-badge)](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14_App_Router-black.svg?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Tests](https://img.shields.io/badge/Tests-236%2F236_Passing-00C853.svg)](./backend/README.md)
+[![Meta Model API](https://img.shields.io/badge/Meta_Model_API-5_Models_Integrated-0668E1.svg?logo=meta&logoColor=white)](https://api.meta.ai)
 
-**`sam-3.1` Parallel Segmentation** · **`muse-voice-transcribe-1.0` Radio ASR** · **`muse-spark-1.3` Multimodal Triage & Re-Route** · **Deterministic Python Verifier + OSM** · **`muse-wonder-1.0` High-Effort Dispatch** · **`muse-image-1.0` Tactical Briefing Cards**
+**`sam-3.1` Spatial Segmentation** · **`muse-voice-transcribe-1.0` Radio ASR** · **`muse-spark-1.3` Multimodal Triage**  
+**Deterministic Python Verifier + OSM** · **`muse-wonder-1.0` High-Effort Dispatch** · **`muse-image-1.0` Tactical Briefing Cards**
 
-[Why CrisisGrid](#-why-crisisgrid-wins) · [🏆 $10k Open-Weight Track](#-10000-special-prize-track-best-build-on-meta-open-weight-models) · [Visual Proof](#-end-to-end-visual-proof-disaster-in--verified-corridor--autonomous-dispatch-out) · [Architecture Diagrams](#️-system-architecture-mermaid-diagrams) · [All 5 Meta Models](#-full-breakdown-of-all-5-meta-models-used-httpsapimetaiav1) · [Verifiable-Agent Math](#️-the-verifiable-agent-principle-spark-proposes-python-disposes) · [⏱️ 3-Min Demo Script](#️-timed-3-minute-live-demo-script-for-judges) · [Quick Start](#-quick-start-clone-to-demo-in-under-5-minutes) · [API Reference](#-complete-api-reference)
+[Overview](#-overview) · [Architecture](#%EF%B8%8F-system-architecture) · [Model Specifications](#-meta-model-pipeline--specifications) · [Verification Engine](#-deterministic-verification-engine) · [Visual Proof & Presets](#-visual-proof--disaster-presets) · [Quick Start](#-quick-start) · [API Reference](#-api-reference) · [Author](#-author)
 
 </div>
 
 ---
 
-## 🌍 Problem & Executive Vision
+## 🌍 Overview
 
-When floods, earthquakes, wildfires, or landslides strike anywhere in the world, emergency operations centers lose **45+ critical minutes** manually cross-referencing aerial/drone imagery, noisy field-responder radio calls, and static road maps before they can safely route rescue units. Worse, off-the-shelf vision-language models routinely hallucinate "safe" evacuation routes straight through floodwater, collapsed bridges, or active debris fields.
+When floods, earthquakes, wildfires, or landslides strike, emergency operations centers face severe latency aggregating aerial imagery, noisy field-responder radio calls, and static road maps before establishing safe rescue routes. Standard vision-language models frequently propose evacuation corridors that traverse hazardous terrain—such as floodwaters, compromised bridges, or active debris fields—because they lack geometric grounding.
 
-**CrisisGrid** closes that gap without ever trusting an unverified neural guess. Built **100% on the official Meta Model API (`https://api.meta.ai/v1`)** authenticated with a single `MODEL_API_KEY` and paired with a **deterministic local Python geometry verifier**, CrisisGrid:
+**CrisisGrid** resolves this by decoupling neural proposal from deterministic verification. Built using the **official Meta Model API (`https://api.meta.ai/v1`)** authenticated via a single `MODEL_API_KEY` and anchored by a **local Python geometry verification engine**, CrisisGrid provides:
 
-1. **Ingests** aerial, drone, or street-level disaster imagery alongside spoken field-responder radio reports (`muse-voice-transcribe-1.0`) or typed operator reports.
-2. **Segments** physical hazards vs. passable infrastructure using parallel, single-phrase `sam-3.1` requests parsed by a zero-LLM deterministic regex engine (`sam_parser.py`).
-3. **Proposes** ranked triage priorities, candidate evacuation corridors, and helicopter/drone landing zones via multimodal reasoning (`muse-spark-1.3`).
-4. **Mathematically Verifies** every candidate corridor and landing zone in pure local Python (`verifiable_corridor_engine.py`)—computing exact RLE-mask or bounding-box Intersection-over-Union (IoU), route hazard-contact ratios ($\le 10\%$), safe-surface support ($\ge 50\%$), pixel clearance radii, and live **OpenStreetMap Overpass API** emergency facility distances. **If a proposed path crosses a segmented hazard mask by $>10\%$, the verifier rejects it with geometric proof and forces `muse-spark-1.3` into a bounded self-correction re-route loop.**
-5. **Dispatches** multi-unit rescue protocols (`muse-wonder-1.0` with `reasoning={"effort": "high"}`) and generates visual tactical field briefing cards (`muse-image-1.0`) strictly from **mathematically verified** state—enforced by both pre-prompt and post-generation deterministic Python guardrails.
+1. **Multimodal Ingestion:** Ingests aerial, drone, or ground imagery alongside emergency responder radio transmissions (`muse-voice-transcribe-1.0`) or textual dispatch logs.
+2. **Parallel Spatial Segmentation:** Executes parallel, single-phrase segmentation requests via `sam-3.1` across 9 hazard and infrastructure concepts, parsed by a deterministic regex engine.
+3. **Multimodal Triage & Candidate Proposals:** Evaluates incident severity and proposes candidate evacuation corridors and landing zones using `muse-spark-1.3`.
+4. **Deterministic Mathematical Verification:** Evaluates candidate corridors against hazard masks using pure local Python (`verifiable_corridor_engine.py`). Computes exact Intersection-over-Union (IoU), corridor hazard contact ratios ($\le 10\%$), passable infrastructure support ($\ge 50\%$), landing zone pixel clearance, and OpenStreetMap Overpass emergency facility proximity. If a candidate path intersects a hazard by $>10\%$, the verifier rejects it with geometric proof and forces a bounded re-routing loop.
+5. **High-Effort Dispatch & Tactical Briefings:** Coordinates multi-unit emergency response protocols via `muse-wonder-1.0` (`reasoning={"effort": "high"}`) and synthesizes visual field briefing schematics via `muse-image-1.0`, strictly constrained to verified infrastructure.
 
-> [!IMPORTANT]
-> **Core Safety Invariant:** Model output is always a *proposal* (`#FFD600` Yellow); deterministic local Python code is the *verifier* (`#00C853` Green / `#FF2D20` Red). No unverified route is ever marked safe or passed to autonomous dispatch.
-
----
-
-## 🏆 Why CrisisGrid Wins
-
-| Judging Dimension | Why It Matters | How CrisisGrid Delivers |
-| :--- | :--- | :--- |
-| **1. Universal Global Impact** | Floods, wildfires, and earthquakes affect every continent. Nobody needs local cultural context to immediately grasp why saving 45 minutes during emergency triage saves lives. | Operates on any aerial, drone, or street-level frame worldwide, enriched by global **OpenStreetMap Overpass API** hospital, clinic, fire, and police station lookups whenever GPS coordinates are supplied. |
-| **2. Impossible to Call a "Simple Image Analyzer"** | A single VLM prompt wrapper cannot safely coordinate multi-unit disaster response or certify physical route geometry. | Combines **all 5 Meta frontier modalities** (`sam-3.1`, `muse-voice-transcribe-1.0`, `muse-spark-1.3`, `muse-wonder-1.0`, `muse-image-1.0`) with a **zero-LLM deterministic geometric verifier**, closed-loop self-correction, before/after damage delta, and multi-sector triage ranking. |
-| **3. Zero Need to Film Local Footage** | Judges can run the full pipeline in 1 click without custom hardware or regional footage. | Ships with **9 built-in aerial disaster test scenes** across 6 hazard categories (flood, earthquake, landslide, cyclone, tornado, wildfire, plus post-clearance pair), **Live USGS Seismic Telemetry** (`GET /api/usgs/live`), real emergency radio WAV audio, and a clean text fallback. |
-| **4. $10,000 Open-Weight Track Eligible** | Directly qualifies for the special prize "Best Build on Meta Open Weight Models". | Core triage, hazard damage assessment, corridor proposals, and autonomous re-routing run seamlessly on **`Muse Spark Open` (`muse-spark-open`)** and **`Muse Glimmer` (`muse-glimmer`)**, verified on participants' own hardware (vLLM / Ollama) or partner-provided inference. |
+> **Safety Invariant:** Model outputs serve exclusively as *proposals* (rendered in yellow); pure Python geometry acts as the *verifier* (rendered in green for verified, red for rejected). No unverified route is ever approved for dispatch.
 
 ---
 
-## 📸 End-to-End Visual Proof: Disaster In → Verified Corridor → Autonomous Dispatch Out
+## 🏗️ System Architecture
 
-Below is an actual live end-to-end run on the repository's Urban Flood scenario ([`live-flood.jpg`](./live-flood.jpg) + [`radio-report.wav`](./radio-report.wav)):
-
-1. **`sam-3.1`** segments passable `ROAD` (`#00C853` Green) vs. blocking `FLOOD WATER` (`#FF2D20` Red) across the midground (`y: 0.56 → 0.83`).
-2. **`muse-spark-1.3`** initially proposes a corridor that reaches into the flooded road span; **`verifiable_corridor_engine.py`** rejects it (`hazard_intersection_ratio > 0.10`) and forces a self-correction re-route onto the dry foreground road segment (`corridor-1`) and dry foreground pad (`landing-zone-1`).
-3. **`muse-wonder-1.0`** (`reasoning={"effort": "high"}`) dispatches 5 response units onto the verified targets (`0` held by the guardrail), and **`muse-image-1.0`** renders the tactical briefing schematic strictly from verified facts:
-
-| 1. Raw Disaster Input ([`live-flood.jpg`](./live-flood.jpg)) | 2. Parallel `sam-3.1` Segmentation ([`live-flood-overlay.png`](./live-flood-overlay.png)) | 3. `muse-image-1.0` Verified Briefing Card ([`live-flood-briefing-card.png`](./live-flood-briefing-card.png)) |
-| :---: | :---: | :---: |
-| ![Raw Flood Scene](./live-flood.jpg) | ![SAM-3.1 Overlay](./live-flood-overlay.png) | ![Briefing Card](./live-flood-briefing-card.png) |
-| *Input frame + spoken radio WAV (`radio-report.wav`)* | *Green `ROAD` vs. Red `FLOOD WATER` (`sam-3.1`)* | *Generated strictly from verified `corridor-1` & `landing-zone-1`* |
-
-### 1-Click Global Judge Presets (`GET /api/presets` + Mission Control UI)
-
-Every preset loads real inputs (imagery + radio WAV/text report + GPS coordinates) with **zero pre-baked detections or canned results**—clicking **RUN** executes the live Meta Model API pipeline:
-
-| Preset 1: `urban-flood` | Preset 2: `earthquake-bridge` | Preset 3: `wildfire-helipad` |
-| :---: | :---: | :---: |
-| ![Urban Flood Preset](./frontend/public/presets/urban-flood.jpg) | ![Earthquake Bridge Preset](./frontend/public/presets/earthquake-bridge.jpg) | ![Wildfire Helipad Preset](./frontend/public/presets/wildfire-helipad.jpg) |
-| **Urban Flood Corridor** (`urban-flood.jpg` + `field-radio.wav`)<br/>*Focus:* `flood water`, `road`, `bridge`, `rooftop`, `stranded vehicle` | **Earthquake Bridge & Rubble Triage** (`earthquake-bridge.jpg`)<br/>*Focus:* `debris`, `damaged building`, `bridge`, `clear flat ground`, `road` | **Wildfire Evacuation & Helipad Finder** (`wildfire-helipad.jpg`)<br/>*Focus:* `fire`, `road`, `clear flat ground`, `rooftop`, `debris` |
-
----
-
----
-
-## 🏆 $10,000 Special Prize Track: Best Build on Meta Open Weight Models
-
-> **Hackathon Prize:** "Best Build on Meta Open Weight Models" ($10,000)  
-> **Official Rule:** *"The best project built using Muse Glimmer or Muse Spark Open, served on participants' own hardware or through partner-provided inference. Projects are flagged during the first judging round. The infrastructure partner verifies that the project runs on an eligible Meta open-weight model."*
-
-CrisisGrid **fully qualifies and passes every requirement of this category**:
-
-1. **Built on an Eligible Meta Open-Weight Model (`Muse Spark Open` / `Muse Glimmer`):**
-   - CrisisGrid's core multimodal reasoning agent—which fuses drone imagery with field radio transcripts, scores incident severity, proposes candidate evacuation corridors and landing zones, and executes closed-loop Liang-Barsky geometric self-correction—is powered directly by **`Muse Spark Open` (`muse-spark-open`)** and **`Muse Glimmer` (`muse-glimmer`)**.
-2. **Served on Own Hardware or Partner-Provided Inference:**
-   - CrisisGrid is not locked to a single proprietary cloud; its backend inference layer is standard OpenAI-compatible HTTP. It can be served:
-     - **On participants' own hardware:** Local GPU or CPU running `muse-spark-open` via vLLM, Ollama, SGLang, or TGI.
-     - **Through partner-provided inference:** Configured via `META_API_BASE_URL` pointing to any partner endpoint (e.g. Together AI, Groq, Fireworks, Modal serverless).
-3. **Automated Verification Contract (`GET /health`):**
-   When the infrastructure partner verifies the deployment, `GET /health` deterministically confirms open-weight readiness:
-   ```json
-   {
-     "status": "ok",
-     "service": "CrisisGrid Engine",
-     "compute_runtime": "local_python",
-     "models": {
-       "segmentation": "sam-3.1",
-       "transcription": "muse-voice-transcribe-1.0",
-       "triage": "muse-spark-open",
-       "dispatch": "muse-wonder-1.0",
-       "briefing_image": "muse-image-1.0"
-     },
-     "meta_open_weight_track": {
-       "eligible": true,
-       "category_prize": "$10,000 Best Build on Meta Open Weight Models",
-       "triage_reasoner_model": "muse-spark-open",
-       "supported_open_models": ["muse-spark-open", "muse-glimmer", "muse-spark-1.3"],
-       "serving_modes": ["self_hosted_hardware", "partner_provided_inference", "meta_model_api"]
-     }
-   }
-   ```
-4. **1-Command Verification for Judges & Infrastructure Partners:**
-   ```bash
-   # Test with Muse Spark Open on self-hosted hardware or partner inference:
-   export TRIAGE_MODEL="muse-spark-open"               # or "muse-glimmer"
-   export META_API_BASE_URL="http://localhost:8000/v1"     # or partner inference URL
-   export MODEL_API_KEY="EMPTY"                        # dummy auth accepted for self-hosted
-   python backend/test_meta_api.py
-   uvicorn backend.main:app --port 8000
-   ```
-
-## 🏗️ System Architecture (Mermaid Diagrams)
-
-### 1. End-to-End Multimodal Pipeline (Synced with [`ROADMAP.md`](./ROADMAP.md))
+### 1. End-to-End Pipeline
 
 ```mermaid
 flowchart LR
-    A["Drone / Street Imagery (Upload or 1-Click Preset)"] --> B["sam-3.1 (9 Parallel 1-Phrase Requests)"]
-    R["Field Radio Audio (WAV) or Typed Text Report"] --> T["muse-voice-transcribe-1.0 (POST /v1/asr/transcribe)"]
-    T --> S["muse-spark-1.3 (Damage and Urgency Triage)"]
+    A["Aerial / Drone Imagery"] --> B["sam-3.1 (9 Parallel Async Requests)"]
+    R["Field Radio Audio (WAV)"] --> T["muse-voice-transcribe-1.0 (POST /v1/asr/transcribe)"]
+    T --> S["muse-spark-1.3 (Damage & Urgency Triage)"]
     B --> P["Deterministic Regex Parser (sam_parser.py)"]
     P --> S
-    P --> V{"Deterministic Python Verifier (IoU, Hazard max 10%, Support min 50%, LZ Clearance)"}
-    S -- "Unverified Candidates (Yellow)" --> V
-    O["OpenStreetMap Overpass API (Hospitals, Fire, Police)"] --> V
-    V -- "REJECTED (Red): Path Crosses Hazard (Bounded Re-Route)" --> S
-    V -- "VERIFIED ONLY (Green): Double Guardrail" --> W["muse-wonder-1.0 (High-Effort Multi-Unit Dispatch)"]
+    P --> V{"Deterministic Python Verifier (IoU, Hazard <= 10%, Support >= 50%)"}
+    S -- "Candidate Proposals (Yellow)" --> V
+    O["OpenStreetMap Overpass API (Emergency Services)"] --> V
+    V -- "REJECTED (Red): Hazard Intersected -> Re-Route Request" --> S
+    V -- "VERIFIED (Green): Pre-Gate Constraint" --> W["muse-wonder-1.0 (High-Effort Multi-Unit Dispatch)"]
     W --> I["muse-image-1.0 (Tactical Field Briefing Card)"]
-    P --> D["Damage Delta and Post-Clearance Re-Verifier"]
+    P --> D["Damage Delta & Post-Clearance Engine"]
     D --> V
-    V --> UI["Next.js Tactical Command UI (Canvas, Trace, Console, Sector Rank)"]
+    V --> UI["Next.js Tactical Command UI"]
     W --> UI
     I --> UI
 ```
 
-### 2. Closed-Loop Verification & Double-Guardrail Dispatch Sequence
+### 2. Closed-Loop Verification Sequence
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Judge as Judge / Operator
-    participant UI as Next.js Tactical Command UI
+    actor Operator as Emergency Dispatcher
+    participant UI as Next.js Tactical UI
     participant API as FastAPI Backend
-    participant SAM as sam-3.1 (api.meta.ai/v1)
+    participant SAM as sam-3.1
     participant ASR as muse-voice-transcribe-1.0
     participant Spark as muse-spark-1.3
     participant Verifier as verifiable_corridor_engine.py
-    participant Wonder as muse-wonder-1.0 + Guardrail
+    participant Wonder as muse-wonder-1.0
     participant Image as muse-image-1.0
 
-    Judge->>UI: Click Preset or Upload Image + Radio WAV / Text
-    UI->>API: POST /api/run-crisisgrid (or staged Steps 1 to 4)
-    par Parallel 1-Phrase Segmentation (9 Concepts)
-        API->>SAM: 9x async POST /v1/responses (1 noun phrase per call)
-        SAM-->>API: Raw SAM-3.1 box coordinates and RLE mask payloads
-    and Field Radio Transcription
-        API->>ASR: POST /v1/asr/transcribe (WAV mono s16le 16kHz / 24kHz)
-        ASR-->>API: Emergency radio transcript
+    Operator->>UI: Submit Scene Imagery + Radio WAV
+    UI->>API: POST /api/run-crisisgrid
+    par Parallel Spatial Segmentation (9 Concepts)
+        API->>SAM: 9x async POST /v1/responses (single phrase per call)
+        SAM-->>API: Bounding boxes and RLE mask data
+    and Radio Transcription
+        API->>ASR: POST /v1/asr/transcribe (16kHz mono s16le WAV)
+        ASR-->>API: Decoded emergency field radio transcript
     end
-    API->>API: Parse boxes and masks via regex (sam_parser.py) and strip RLE masks
-    API->>Spark: Transcript + Image + Mask-Stripped Scan Summary (developer role)
-    Spark-->>API: Ranked Priorities + Candidate Corridors and LZs (Yellow unverified_candidate)
-    API->>Verifier: Verify candidates against hazard and safe-zone masks (+ OSM Overpass)
-    alt Candidate Hazard Contact over 10% or Safe Support under 50% or LZ Clearance Fails
-        Verifier-->>API: REJECTED (Red) + Geometric Proof (exact IoU and intersecting hazards)
-        API->>Spark: Bounded Re-Route Request with Verifier Rejection Evidence (max 2 attempts)
-        Spark-->>API: Revised Corridor and Landing-Zone Coordinates
-        API->>Verifier: Re-verify revised candidates in pure Python (0 model calls in geometry)
+    API->>API: Parse boxes and masks via regex; strip raw RLE for prompt
+    API->>Spark: Transcripts + Image + Grounded Spatial Summary
+    Spark-->>API: Urgency Score + Candidate Corridors & LZs (status: unverified_candidate)
+    API->>Verifier: Evaluate candidates against hazard & infrastructure masks
+    alt Candidate Hazard Contact > 10% or Support < 50%
+        Verifier-->>API: REJECTED + Exact geometric proof (IoU, collision coordinates)
+        API->>Spark: Bounded Re-Route Request with Verifier Collision Data (max 2 attempts)
+        Spark-->>API: Revised Corridor & Landing Zone Coordinates
+        API->>Verifier: Re-evaluate revised coordinates (pure Python math)
     end
-    Verifier-->>API: VERIFIED Candidates (Green, dispatch_ready = true)
-    API->>Wonder: Pre-Gate (verified geometry only) to muse-wonder-1.0 (high reasoning effort)
-    Wonder-->>API: Multi-Unit Protocol checked by Post-Wonder Guardrail (holds unverified targets)
-    API->>Image: Deterministic Facts-Only Prompt to muse-image-1.0 (PNG output)
-    Image-->>API: Base64 PNG Tactical Briefing Card
-    API-->>UI: Full Pipeline Payload + Concatenated Verifiable Agent Trace
-```
-
-### 3. Before/After Damage Delta, Post-Clearance Flip & Multi-Sector Triage
-
-```mermaid
-flowchart TD
-    BScan["BEFORE Scan (/api/scan-hazards)"] --> Delta["compute_damage_delta() (Greedy Per-Concept Box IoU min 10%)"]
-    AScan["AFTER Scan (/api/scan-hazards)"] --> Delta
-    Delta --> NewH["NEW Hazards and LOST Safe Zones (Red)"]
-    Delta --> ClrH["CLEARED Hazards and NEW Safe Zones (Green)"]
-    Delta --> PerH["PERSISTENT Detections (Yellow)"]
-    AScan --> ClrVer["verify_clearance() (Re-runs Geometry Verifier on AFTER Scan Only)"]
-    Cand["Previously Blocked Candidates"] --> ClrVer
-    ClrVer -- "Debris Removed and All Invariants Pass" --> Flip["Status Flips: REJECTED to VERIFIED (Green, dispatch_ready = true)"]
-    ClrVer -- "Hazard Contact Still Over 10%" --> Stay["Remains REJECTED (Red, No False Flip)"]
-    Flip --> Rank["rank_sectors() (Deterministic 0 to 100 Priority Score Across Sectors)"]
+    Verifier-->>API: VERIFIED Candidates (status: verified)
+    API->>Wonder: Pre-gated verified geometry -> muse-wonder-1.0 (reasoning: high)
+    Wonder-->>API: Multi-unit dispatch protocol (checked by post-generation guardrail)
+    API->>Image: Facts-only prompt -> muse-image-1.0
+    Image-->>API: Generated Tactical Briefing Card PNG
+    API-->>UI: Complete Mission State + Verifiable Agent Trace
 ```
 
 ---
 
-## 🧠 Full Breakdown of All 5 Meta Models Used (`https://api.meta.ai/v1`)
+## 🧠 Meta Model Pipeline & Specifications
 
-CrisisGrid uses **100% official Meta Model API inference (`https://api.meta.ai/v1`)** via a single `MODEL_API_KEY`. No OpenAI, Anthropic, Google, Replicate, or third-party cloud GPU endpoints exist anywhere in the codebase. The OpenAI Python SDK is used strictly as an HTTP client pointed at `base_url="https://api.meta.ai/v1"`.
+CrisisGrid communicates directly with the Meta Model API at `https://api.meta.ai/v1` via standard OpenAI-compatible HTTP requests, authenticated by `MODEL_API_KEY`.
 
-| # | Meta Model ID | Role in CrisisGrid | Endpoint / SDK Method | Wire Contract & Guardrails | Implementation |
-| :-: | :--- | :--- | :--- | :--- | :--- |
-| **1** | **`sam-3.1`** | Pixel-precise hazard & passable infrastructure segmentation | `POST /v1/responses`<br/>(`client.responses.create`) | **One short concrete noun phrase per request.** 9 canonical concepts fanned out concurrently via `asyncio.gather`. Parsed exclusively by deterministic regex (`sam_parser.py`). | [`sam_hazard_scanner.py`](./backend/services/sam_hazard_scanner.py)<br/>[`sam_parser.py`](./backend/services/sam_parser.py) |
-| **2** | **`muse-voice-transcribe-1.0`** | Emergency responder radio voice transcription | `POST /v1/asr/transcribe`<br/>(`multipart/form-data`) | `request={"mode":"ENDPOINTING","model":"muse-voice-transcribe-1.0","audioEncoding":"WAV"}`. Locally validates RIFF/WAVE header (mono `s16le` @ `16000` or `24000` Hz) prior to network call. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py) |
-| **3** | **`muse-spark-1.3`** | Multimodal damage/urgency triage & closed-loop corridor re-routing | `POST /v1/responses`<br/>(`role="developer"`) | Fuses transcript + image + mask-stripped `sam-3.1` summary into JSON priorities & `unverified_candidate` routes. Re-routes rejected candidates when forced by the deterministic verifier. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py)<br/>[`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) |
-| **4** | **`muse-wonder-1.0`** | High-effort autonomous multi-unit rescue dispatch orchestration | `POST /v1/responses`<br/>(`reasoning={"effort":"high"}`) | Pre-gated so **only verified** corridors/LZs enter the prompt. Post-gated by a deterministic guardrail (`sanitize_dispatch_plan`) that holds any unit targeting an unverified ID. | [`wonder_commander.py`](./backend/services/wonder_commander.py) |
-| **5** | **`muse-image-1.0`** | Visual tactical field briefing card & test preset scene generation | `POST /v1/images/generations`<br/>(`output_format="png"`) | Prompt is deterministically assembled in Python from verified corridors, LZs, and dispatched units only—never inventing unverified routes or hazards. | [`wonder_commander.py`](./backend/services/wonder_commander.py)<br/>[`presets.py`](./backend/services/presets.py) |
+| Model | Primary Function | Endpoint / Method | Contract & Guardrail Details | Implementation |
+| :--- | :--- | :--- | :--- | :--- |
+| **`sam-3.1`** | Spatial Hazard & Infrastructure Segmentation | `POST /v1/responses`<br/>(`client.responses.create`) | **Single noun phrase per request.** 9 concepts dispatched asynchronously in parallel via `asyncio.gather`. Parsed exclusively via compiled regex ([`sam_parser.py`](./backend/services/sam_parser.py)). | [`sam_hazard_scanner.py`](./backend/services/sam_hazard_scanner.py) |
+| **`muse-voice-transcribe-1.0`** | Field Radio Voice Transcription | `POST /v1/asr/transcribe`<br/>(`multipart/form-data`) | Audio validated locally before dispatch (`16000` / `24000` Hz mono `s16le` PCM). Includes typed-text fallback for silent environments. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py) |
+| **`muse-spark-1.3`** | Multimodal Triage & Self-Correction Re-Routing | `POST /v1/responses`<br/>(`role="developer"`) | Fuses radio transcript, image frame, and mask-stripped spatial summaries into structured JSON triage plans and candidate geometry. Re-routes rejected corridors on geometric failure evidence. | [`voice_and_triage.py`](./backend/services/voice_and_triage.py)<br/>[`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) |
+| **`muse-wonder-1.0`** | High-Effort Dispatch Coordination | `POST /v1/responses`<br/>(`reasoning={"effort":"high"}`) | Pre-gated to accept **only verified geometry**. Secondary Python guardrail audits output, holding any unit assigned to unverified targets. | [`wonder_commander.py`](./backend/services/wonder_commander.py) |
+| **`muse-image-1.0`** | Tactical Field Briefing Card Synthesis | `POST /v1/images/generations`<br/>(`output_format="png"`) | Prompts are deterministically constructed in Python from verified parameters only, preventing hallucinated hazard depictions. | [`wonder_commander.py`](./backend/services/wonder_commander.py) |
 
-### Detailed Per-Model Engineering Breakdown
+### Open-Weight & Self-Hosted Model Support
 
-#### 1. `sam-3.1` — Parallel Single-Concept Spatial Segmentation
-- **Why it is essential:** Disaster triage requires knowing *where* hazards and roads physically sit in image space, not just a caption saying "there is a flood."
-- **Strict One-Phrase Discipline:** `sam-3.1` accepts **one short concrete noun phrase per request**. [`sam_hazard_scanner.py`](./backend/services/sam_hazard_scanner.py) validates every concept (`validate_concepts`) to reject multi-concept strings and fires **9 concurrent async requests** via `asyncio.gather`:
-  - **5 Critical Hazards (`#FF2D20` Red):** `"flood water"`, `"debris"`, `"fire"`, `"damaged building"`, `"stranded vehicle"`
-  - **4 Passable Safe Zones (`#00C853` Green):** `"road"`, `"bridge"`, `"clear flat ground"`, `"rooftop"`
-- **Deterministic Wire Parsing:** `sam-3.1` emits `<0f>0<|box;x1=181;y1=365;x2=556;y2=486;w=1516;h=1600|><|mask;x=0;y=0;data=...|>` strings. [`sam_parser.py`](./backend/services/sam_parser.py) extracts pixel boxes, frame dimensions $(w, h)$, and RLE mask payloads with a compiled regular expression—never an LLM.
+CrisisGrid is compatible with self-hosted open-weight reasoning models (**`muse-spark-open`** and **`muse-glimmer`**) served through standard OpenAI-compatible inference servers (vLLM, Ollama, SGLang, TGI) or partner endpoints:
 
-#### 2. `muse-voice-transcribe-1.0` — Field Radio Voice Transcription
-- **Why it is essential:** First responders communicate urgent non-visual facts over radio (e.g., *"three people trapped on the market rooftop, water still rising"*).
-- **WAV Contract Enforcement:** Before calling `POST https://api.meta.ai/v1/asr/transcribe`, `validate_wav_for_asr()` inspects the audio bytes with Python's `wave` module to verify mono channel (`channels=1`), 16-bit signed PCM (`s16le`), and `16000` or `24000` Hz sample rate. A clean typed-text fallback (`text` form field or `POST /api/triage/text`) ensures judges can also test in silent browser environments.
+```bash
+# Configure self-hosted open-weight triage model:
+export TRIAGE_MODEL="muse-spark-open"               # or "muse-glimmer"
+export META_API_BASE_URL="http://localhost:8000/v1"     # local or partner inference endpoint
+export MODEL_API_KEY="EMPTY"                        # dummy key accepted for local runtimes
+```
 
-#### 3. `muse-spark-1.3` — Multimodal Triage & Bounded Self-Correction Re-Router
-- **Why it is essential:** Synthesizes visual damage, spoken field reports, and segmented spatial geometry into actionable triage priorities and initial route proposals.
-- **Mask-Stripped Grounding:** `summarize_scan()` strips bulky RLE `mask.data` strings from the `sam-3.1` payload before passing the spatial summary to `muse-spark-1.3` (`role="developer"`), keeping context lean and grounded in exact `[x_min, y_min, x_max, y_max]` normalized coordinates.
-- **Closed-Loop Re-Routing:** When `verifiable_corridor_engine.py` rejects a proposed corridor or landing zone, `request_spark_reroute()` feeds the exact intersecting hazard concepts, bounding boxes, and failure ratios back to `muse-spark-1.3` (`max_correction_attempts=2`), forcing it to propose a detour that the deterministic verifier then re-checks from scratch.
-
-#### 4. `muse-wonder-1.0` — High-Effort Multi-Unit Dispatch Coordinator
-- **Why it is essential:** Orchestrating medical teams, boat rescue, heavy debris clearance, aerial drops, and evacuation staging requires deep multi-constraint reasoning (`reasoning={"effort": "high"}`).
-- **Double Deterministic Guardrail (`wonder_commander.py`):**
-  1. **Pre-Prompt Gate (`extract_dispatchable_state`):** Re-checks every candidate in pure Python before calling `muse-wonder-1.0`. Only candidates with `status == "verified"` and `hazard_intersection_ratio <= 0.10` enter the prompt as dispatchable geometry; rejected IDs are listed strictly as excluded. If zero candidates are verified, `muse-wonder-1.0` is **not called** (`NoDispatchableCandidatesError`).
-  2. **Post-Wonder Guardrail (`sanitize_dispatch_plan`):** Inspects every unit returned by `muse-wonder-1.0`. Any unit targeting an unverified or excluded candidate ID—or missing a concrete task—is automatically **HELD** (`status: "held_unverified_target"`, `#FFD600` Yellow) with its invalid target stripped.
-
-#### 5. `muse-image-1.0` — Tactical Field Briefing Card Generator
-- **Why it is essential:** Field commanders need a single, high-contrast visual schematic summarizing the operation name, urgency score, verified corridors/LZs, and dispatched unit counts.
-- **Facts-Only Prompt Construction (`build_briefing_card_prompt`):** Python deterministically builds the `muse-image-1.0` prompt from verified corridor names, verified LZ clearances, dispatched unit counts, and known hazards kept off the routes—explicitly forbidding any rejected candidate IDs from appearing on the card.
+Runtime compatibility and health verification can be queried at [`GET /health`](./backend/main.py).
 
 ---
 
-## 🛡️ The Verifiable-Agent Principle ("Spark Proposes; Python Disposes")
+## 🛡️ Deterministic Verification Engine
 
-All geometric verification, before/after delta matching, and multi-sector scoring run in **pure local Python with zero model calls** ([`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) & [`damage_delta.py`](./backend/services/damage_delta.py)):
+All geometric verification, change detection, and sector prioritization execute in pure local Python with zero model dependencies ([`verifiable_corridor_engine.py`](./backend/services/verifiable_corridor_engine.py) and [`damage_delta.py`](./backend/services/damage_delta.py)):
 
-1. **Corridor Hazard Contact Ratio ($\le 10\%$):**
-   $$R_{\text{hazard}}(C) = \frac{L\left(C \cap \bigcup_{h \in \mathcal{H}} h\right)}{L(C)} \le 0.10$$
-   Computed at pixel-mask resolution (`method: "mask"`) when RLE payloads decode via our integer/COCO decoders, or via exact parametric Liang-Barsky segment-box clipping (`method: "bbox"`, explicitly declared in the trace when vendor RLE is opaque). Any route with $>10\%$ hazard contact is **rejected** (`#FF2D20`).
-2. **Safe-Infrastructure Support Ratio ($\ge 50\%$):**
-   $$R_{\text{support}}(C) = \frac{L\left(C \cap \bigcup_{s \in \mathcal{S}} s\right)}{L(C)} \ge 0.50$$
-   Ensures evacuation corridors stay on segmented passable surfaces (`road`, `bridge`, `clear flat ground`, `rooftop`).
-3. **Landing-Zone Pixel Clearance & Surface Overlap:**
-   Drone landing zones require normalized radius $r \ge 0.015 \cdot \min(W, H)$; helicopter landing zones require $r \ge 0.040 \cdot \min(W, H)$, hazard overlap $\le 10\%$, and safe-surface overlap $\ge 50\%$. Clearance is certified in image-space pixels—never fake GPS meters.
-4. **Multi-Sector Priority Formula (`rank_sectors`):**
-   Ranks multiple disaster sectors on a transparent $[0, 100]$ scale with zero model calls:
-   $$\text{Score} = 0.40 \cdot \text{Urgency} + \text{Severity}_{\le 25} + \text{PeopleAtRisk}_{\le 15} + \text{HazardFootprint}_{\le 10} + \text{AccessPressure}_{\le 10}$$
+### 1. Corridor Hazard Contact Ratio ($\le 10\%$)
+$$R_{\text{hazard}}(C) = \frac{L\left(C \cap \bigcup_{h \in \mathcal{H}} h\right)}{L(C)} \le 0.10$$
+Evaluated via pixel-level mask decoders or exact Liang-Barsky parametric line-box clipping. Corridors with $>10\%$ hazard contact are rejected with bounding-box collision proofs.
 
----
+### 2. Infrastructure Support Ratio ($\ge 50\%$)
+$$R_{\text{support}}(C) = \frac{L\left(C \cap \bigcup_{s \in \mathcal{S}} s\right)}{L(C)} \ge 0.50$$
+Verifies that candidate evacuation corridors align with structurally viable surfaces (`road`, `bridge`, `clear flat ground`, `rooftop`).
 
-## ⏱️ Timed 3-Minute Live Demo Script (For Judges)
+### 3. Landing Zone Clearance
+Helicopter landing zones require normalized radius $r \ge 0.040 \cdot \min(W, H)$, hazard overlap $\le 10\%$, and safe-surface overlap $\ge 50\%$. Drone landing zones require $r \ge 0.015 \cdot \min(W, H)$.
 
-> **Setup before starting timer:** Backend running on `http://localhost:8000` (`uvicorn backend.main:app --reload --port 8000`), Frontend open at `http://localhost:3000` (`npm run dev` in `frontend/`), `MODEL_API_KEY` set in `.env`.
-
-### `0:00 – 0:25` · The Hook & Architecture Strip (25s)
-- **On-Screen Action:** Point to the top status bar (`BACKEND: ONLINE`, `MODEL_API_KEY: CONFIGURED`, `API: api.meta.ai/v1`) and the 6-stage model strip (`SAM-3.1 SEGMENT` → `MUSE-VOICE-TRANSCRIBE-1.0` → `MUSE-SPARK-1.3 TRIAGE` → `PYTHON VERIFIER` → `MUSE-WONDER-1.0 DISPATCH` → `MUSE-IMAGE-1.0 BRIEFING`).
-- **Speaker Script:**
-  > *"When floods, earthquakes, or wildfires hit anywhere in the world, responders lose 45 minutes piecing together drone imagery and radio calls—and standard vision LLMs draw evacuation routes straight through floodwater. CrisisGrid solves this using all 5 official Meta frontier models on `api.meta.ai/v1`, governed by a deterministic local Python geometry verifier. In CrisisGrid, neural models propose in yellow; pure Python math verifies in green or rejects in red."*
-
-### `0:25 – 1:00` · 1-Click Global Preset, Voice Radio ASR & Parallel `sam-3.1` Scan (35s)
-- **On-Screen Action:** In **GLOBAL DISASTER PRESETS**, click **LOAD ONLY** on **Preset 1: Urban Flood Corridor** (loads `urban-flood.jpg` + `field-radio.wav` + Kathmandu demo coordinates), then click **STEP 1: SCAN HAZARDS (`sam-3.1`)** and **STEP 2: VOICE + TRIAGE**.
-- **What Judges See:**
-  - The backend fires **9 parallel `sam-3.1` requests** (one noun phrase per request) and overlays green `ROAD` (`y: 0.50 → 1.00`) and red `FLOOD WATER` (`y: 0.56 → 0.83`) on the HTML5 Tactical Canvas.
-  - `muse-voice-transcribe-1.0` transcribes `field-radio.wav` (`ENDPOINTING` mode), and `muse-spark-1.3` (`developer` role) outputs urgency `78/100` plus yellow dashed candidate corridors and landing zones (`status: unverified_candidate`).
-- **Speaker Script:**
-  > *"We don't need local footage—judges can test any global disaster in one click. Here, `sam-3.1` fans out 9 parallel single-phrase requests to segment the passable road in green and floodwater cutting across the midground in red. Simultaneously, `muse-voice-transcribe-1.0` transcribes the responder's WAV radio call, and `muse-spark-1.3` fuses the transcript and scan into triage priorities and candidate evacuation routes. Notice the routes are rendered in dashed yellow—because no model guess is trusted yet."*
-
-### `1:00 – 1:45` · The Trust Layer: Geometric Rejection & Forced Self-Correction (45s)
-- **On-Screen Action:** Click **STEP 3: VERIFY CORRIDORS (PYTHON + OSM)** and scroll the **VERIFIABLE AGENT TRACE** panel.
-- **What Judges See:**
-  - `verifiable_corridor_engine.py` evaluates `corridor-1` with **zero model calls inside geometry**.
-  - In the trace, judges see the initial route crossing the floodwater box (`hazard_intersection_ratio > 10%`) marked **`REJECTED` (`#FF2D20`)**, followed immediately by `reroute_forced` where `muse-spark-1.3` receives the exact geometric proof and proposes a shortened dry-foreground corridor (`y: 0.84 → 0.96`).
-  - The verifier re-checks the revised route (`0.0%` hazard contact, `100%` road support) and marks `corridor-1` and `landing-zone-1` **`VERIFIED` (`#00C853`)** alongside nearby OpenStreetMap Overpass hospitals.
-- **Speaker Script:**
-  > *"Now our deterministic Python verifier runs. Look at the Verifiable Agent Trace: Spark's first corridor touched the segmented floodwater above our 10% threshold, so Python rejected it in red with exact IoU evidence and forced `muse-spark-1.3` to re-route. Spark's revised route stays strictly on the dry foreground road segment—0% hazard contact, 100% road support—earning a green VERIFIED badge and unlocking Step 4."*
-
-### `1:45 – 2:30` · High-Effort Dispatch (`muse-wonder-1.0`) & Briefing Schematic (`muse-image-1.0`) (45s)
-- **On-Screen Action:** Click **STEP 4: AUTONOMOUS DISPATCH (`muse-wonder-1.0`)** in the **DISPATCH ACTION CONSOLE**.
-- **What Judges See:**
-  - `muse-wonder-1.0` (`reasoning={"effort": "high"}`) synthesizes a 5-unit rescue protocol (*Urban Flood Verified Dry Foreground Response*: medical, rescue, evacuation, aerial drone, logistics) assigned exclusively to verified `corridor-1` and `landing-zone-1`.
-  - The post-Wonder deterministic guardrail audit shows `5 dispatched / 0 held`.
-  - Below the unit table, `muse-image-1.0` renders the high-contrast **CRISISGRID TACTICAL BRIEFING** PNG schematic (`live-flood-briefing-card.png`).
-- **Speaker Script:**
-  > *"Only verified geometry is allowed into `muse-wonder-1.0` with high reasoning effort. And even after Wonder responds, our post-generation Python guardrail checks every unit assignment—holding any unit aimed at an unverified target. Finally, `muse-image-1.0` generates this tactical field briefing card from a deterministic facts-only prompt, ready to transmit to field units."*
-
-### `2:30 – 3:00` · Before/After Clearance Flip & Multi-Sector Priority Ranking (30s)
-- **On-Screen Action:** Scroll to the **BEFORE / AFTER DAMAGE DELTA** and **MULTI-SECTOR TRIAGE** panels, run the post-clearance verification check, and click **RANK SECTORS** across saved sectors (Flood, Earthquake Bridge, Wildfire).
-- **What Judges See:**
-  - `compute_damage_delta` matches before/after detections by greedy IoU (`CLEARED` hazards turn green, `NEW` hazards turn red).
-  - `verify_clearance` flips a previously blocked corridor to `VERIFIED` only after the deterministic geometry verifier passes on the post-clearance scan.
-  - `rank_sectors` ranks all active sectors on the published $0\text{–}100$ deterministic formula.
-- **Speaker Script:**
-  > *"As debris is cleared, CrisisGrid compares before-and-after scans and only flips a blocked route to verified when the new scan passes deterministic geometry. Across multiple disaster zones, our multi-sector triage engine ranks sectors deterministically so commanders know exactly where to dispatch first. Five Meta frontier models, one API key, mathematically verified end to end."*
+### 4. Multi-Sector Priority Scoring
+Ranks competing operational zones deterministically on a $0\text{–}100$ scale:
+$$\text{Score} = 0.40 \cdot \text{Urgency} + \text{Severity}_{\le 25} + \text{PeopleAtRisk}_{\le 15} + \text{HazardFootprint}_{\le 10} + \text{AccessPressure}_{\le 10}$$
 
 ---
 
-## ⚡ Quick Start (Clone to Demo in Under 5 Minutes)
+## 📸 Visual Proof & Disaster Presets
+
+Below is an end-to-end execution of the Urban Flood scenario ([`live-flood.jpg`](./live-flood.jpg) + [`radio-report.wav`](./radio-report.wav)):
+
+| 1. Raw Input Frame | 2. SAM-3.1 Segmentation Overlay | 3. Muse-Image-1.0 Verified Briefing Card |
+| :---: | :---: | :---: |
+| ![Raw Flood Scene](./live-flood.jpg) | ![SAM-3.1 Overlay](./live-flood-overlay.png) | ![Briefing Card](./live-flood-briefing-card.png) |
+| *Input drone frame + responder radio WAV* | *Green `ROAD` vs. Red `FLOOD WATER`* | *Synthesized strictly from verified corridor data* |
+
+### Built-in Global Disaster Presets
+
+CrisisGrid includes preset scenarios representing major disaster profiles. Presets provide raw inputs (imagery, radio audio, coordinates); all segmentations and dispatch plans are computed live:
+
+| Preset | Scenario Profile | Canonical Target Concepts |
+| :--- | :--- | :--- |
+| **`urban-flood`** | Monsoon / flash flood urban corridor | `flood water`, `road`, `bridge`, `rooftop`, `stranded vehicle` |
+| **`earthquake-bridge`** | Seismic bridge collapse & rubble triage | `debris`, `damaged building`, `bridge`, `clear flat ground`, `road` |
+| **`wildfire-helipad`** | Wildfire perimeter & evacuation landing zone | `fire`, `road`, `clear flat ground`, `rooftop`, `debris` |
+
+---
+
+## ⚡ Quick Start
 
 ### 1. Clone & Configure Environment
 
@@ -318,95 +182,68 @@ git clone https://github.com/Sameer769dev/CrisisGrid.git
 cd CrisisGrid
 
 cp .env.example .env
-# Edit .env and set your single Meta Model API key:
-# MODEL_API_KEY=your_meta_model_api_key_here
+# Set your Meta Model API key in .env:
+# MODEL_API_KEY=your_key_here
 ```
 
-### 2. Run All 8 Offline Verification Suites (236/236 Assertions — No API Key or Network Needed)
+### 2. Run the Offline Test Suite (236/236 Assertions Passing)
+
+The complete verification suite runs locally without requiring an API key or external network access:
 
 ```bash
 pip install -r backend/requirements.txt
 
-python backend/test_meta_api.py                    # Core: sam-3.1 regex parser & box IoU self-test (7 assertions)
-python backend/test_sam_hazard_scanner.py          # Scanner: Parallel 9-concept sam-3.1 scanner contract (18 assertions)
-python backend/test_voice_and_triage.py            # Triage: WAV header validator, ASR & Spark triage (38 assertions)
-python backend/test_verifiable_corridor_engine.py  # Verifier: Pure Python geometry, RLE mask IoU & re-route loop (48 assertions)
-python backend/test_wonder_commander.py            # Dispatch: Pre/post dispatch guardrails & briefing card prompt (55 assertions)
-python backend/test_damage_delta.py                # Delta: Before/after IoU delta, clearance flip & sector rank (24 assertions)
-python backend/test_presets.py                     # Presets: Global preset catalogue & asset integrity (25 assertions)
-python backend/test_usgs_and_modal.py              # USGS & Modal: Live USGS telemetry normalizer & Modal CPU runtime (21 assertions)
+python backend/test_meta_api.py                    # Regex parser & box IoU (7 assertions)
+python backend/test_sam_hazard_scanner.py          # Parallel 9-concept scanner (18 assertions)
+python backend/test_voice_and_triage.py            # WAV validator, ASR & Spark triage (38 assertions)
+python backend/test_verifiable_corridor_engine.py  # Geometry verifier & re-route loop (48 assertions)
+python backend/test_wonder_commander.py            # Dispatch guardrails & briefing generator (55 assertions)
+python backend/test_damage_delta.py                # Damage delta, clearance & sector rank (24 assertions)
+python backend/test_presets.py                     # Disaster preset catalogue integrity (25 assertions)
+python backend/test_usgs_and_modal.py              # USGS live telemetry & serverless runtime (21 assertions)
 ```
 
-### 3. Run Live Meta Model API Smoke Tests (`--live`, Requires `MODEL_API_KEY`)
+### 3. Launch the Application
 
-```bash
-python backend/test_meta_api.py --live                                          # Ping muse-spark-1.3
-python backend/test_meta_api.py --live --image live-flood.jpg --concept "road"  # Live sam-3.1 segmentation
-python backend/test_meta_api.py --live --audio radio-report.wav                 # Live muse-voice-transcribe-1.0 ASR
-python backend/test_meta_api.py --live --all                                    # Ping spark + wonder (high) + image
-```
-
-### 4. Launch Backend & Tactical Command Frontend
-
-**Terminal 1 — FastAPI Backend (`http://localhost:8000`):**
-
+**Terminal 1 — FastAPI Backend:**
 ```bash
 uvicorn backend.main:app --reload --port 8000
 ```
+*API documentation available at `http://localhost:8000/docs`.*
 
-**Terminal 2 — Next.js Tactical Command UI (`http://localhost:3000`):**
-
+**Terminal 2 — Next.js Tactical UI:**
 ```bash
 cd frontend
 cp .env.local.example .env.local
 npm install
 npm run dev
 ```
+*Mission Control dashboard accessible at `http://localhost:3000`.*
 
-Open **`http://localhost:3000`** in your browser (Swagger API docs available at **`http://localhost:8000/docs`**).
+### 4. Video Demonstration & Walkthrough
 
-### 5. Production Zero-Cold-Start Deployment on Modal.com (`backend/modal_app.py`)
-
-To eliminate free-tier cold starts and run the deterministic geometry verifier on **4 dedicated vCPUs / 4 GB RAM (`min_containers=1`, `gpu=None`)** while keeping **100% of AI inference on `https://api.meta.ai/v1`**:
-
-```bash
-pip install modal
-modal setup
-modal secret create crisisgrid-secrets MODEL_API_KEY=your_meta_model_api_key_here
-modal deploy backend/modal_app.py
-```
-
-Copy the resulting `https://<workspace>--crisisgrid-api-crisisgrid-asgi.modal.run` URL into Vercel's `NEXT_PUBLIC_BACKEND_URL` environment variable.
+A structured 3-minute technical walkthrough script covering each operational stage is available in [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md).
 
 ---
 
-## 🔌 Complete API Reference
+## 🔌 API Reference
 
-| Method | Path | Stage | Status | Description |
-| :---: | :--- | :---: | :---: | :--- |
-| `GET` | `/health` | Core | **Live** | Service version (`1.0.0`), 5-model registry, and boolean `model_api_key_configured`. |
-| `GET` | `/api/config/status` | Core | **Live** | Frontend-safe configuration status and setup hint. |
-| `POST` | `/api/sam/parse` | Core | **Live** | Offline deterministic regex parser for `sam-3.1` `<\|box;...\|><\|mask;...\|>` wire output. |
-| `GET` | `/api/scan-hazards/concepts` | Scan | **Live** | Canonical 5-hazard (`#FF2D20`) and 4-safe-zone (`#00C853`) concept vocabularies. |
-| `POST` | `/api/scan-hazards` *(alias `/api/scan`)* | Scan | **Live** | Parallel async `sam-3.1` segmentation (1 noun phrase per request). |
-| `GET` | `/api/triage/readiness` | Triage | **Live** | WAV audio contract (`16000`/`24000` Hz mono `s16le`), text fallback, and grounding schema. |
-| `POST` | `/api/triage` | Triage | **Live** | Multipart `audio` (WAV) and/or `text`, optional `scan_json` + `image` → `muse-voice-transcribe-1.0` + `muse-spark-1.3`. |
-| `POST` | `/api/triage/text` | Triage | **Live** | JSON text-fallback variant of `/api/triage` for browser clients without audio. |
-| `GET` | `/api/verify/readiness` | Verify | **Live** | Deterministic verifier thresholds ($\le 10\%$ hazard contact, $\ge 50\%$ safe support) and Overpass config. |
-| `POST` | `/api/verify` | Verify | **Live** | Pure Python geometry verifier + OpenStreetMap Overpass lookup + bounded `muse-spark-1.3` re-route loop. |
-| `GET` | `/api/dispatch/readiness` | Dispatch | **Live** | Dispatch trust contract: verified-only pre-gate, post-Wonder unit guardrail, facts-only briefing card. |
-| `POST` | `/api/dispatch` | Dispatch | **Live** | `muse-wonder-1.0` (`reasoning={"effort": "high"}`) multi-unit dispatch + `muse-image-1.0` PNG briefing card. |
-| `POST` | `/api/run-crisisgrid` | Pipeline | **Live** | Unified 1-call pipeline: `scan → triage → verify → dispatch` with concatenated Verifiable Agent Trace. |
-| `GET` | `/api/delta/readiness` | Delta | **Live** | Delta trust contract: delta highlights change; only the deterministic geometry verifier flips candidate status. |
-| `POST` | `/api/delta` | Delta | **Live** | Deterministic greedy per-concept IoU before/after damage delta (`new` / `cleared` / `persistent`). |
-| `POST` | `/api/delta/verify-clearance` | Delta | **Live** | Re-verifies candidate corridors/LZs against the post-clearance scan (0 model calls). |
-| `POST` | `/api/sectors/rank` | Sectors | **Live** | Deterministic $0\text{–}100$ multi-sector triage priority ranking (`dispatch_now`, `clearance_then_reverify`, etc.). |
-| `GET` | `/api/presets` *(+ `/api/presets/{id}`)* | Presets | **Live** | Pre-loaded global disaster preset catalogue (`urban-flood`, `earthquake-bridge`, `wildfire-helipad`). |
-| `GET` | `/api/usgs/readiness` | USGS | **Live** | USGS Earthquake Hazards Program feed contract (`4.5_day`, `4.5_week`, `significant_month`, `2.5_day`). |
-| `GET` | `/api/usgs/live` | USGS | **Live** | Live global earthquake ingestion (`earthquake.usgs.gov`) normalized into CrisisGrid triage inputs (0 model calls). |
-| `GET` | `/api/runtime/modal` | Runtime | **Live** | Active serverless compute profile (`modal_serverless_cpu` or `local_python`) & Modal config. |
+| Method | Endpoint | Description |
+| :---: | :--- | :--- |
+| `GET` | `/health` | Service version, model map, and configuration status. |
+| `POST` | `/api/sam/parse` | Offline deterministic regex parser for `sam-3.1` output format. |
+| `POST` | `/api/scan-hazards` | Parallel async `sam-3.1` multi-concept hazard segmentation. |
+| `POST` | `/api/triage` | Multipart audio/text triage using `muse-voice-transcribe-1.0` + `muse-spark-1.3`. |
+| `POST` | `/api/verify` | Pure Python geometry verification + OpenStreetMap facility lookup. |
+| `POST` | `/api/dispatch` | High-effort `muse-wonder-1.0` multi-unit dispatch + `muse-image-1.0` card synthesis. |
+| `POST` | `/api/run-crisisgrid` | Unified single-call pipeline executing scan, triage, verify, and dispatch. |
+| `POST` | `/api/delta` | Greedy per-concept IoU change detection between before/after disaster scans. |
+| `POST` | `/api/delta/verify-clearance`| Re-verifies routes against post-clearance imagery without model inference. |
+| `POST` | `/api/sectors/rank` | Deterministic $0\text{–}100$ multi-sector priority ranking. |
+| `GET` | `/api/presets` | Retrieval of built-in global disaster test presets. |
+| `GET` | `/api/usgs/live` | Ingestion of live M4.5+ earthquake telemetry from USGS. |
 
-### One-Call End-to-End Pipeline via `curl`
+### Single-Call Pipeline Example via `curl`
 
 ```bash
 curl -sS -X POST http://localhost:8000/api/run-crisisgrid \
@@ -415,7 +252,7 @@ curl -sS -X POST http://localhost:8000/api/run-crisisgrid \
   -F "latitude=27.7172" \
   -F "longitude=85.3240" \
   -F "auto_correct=true" \
-  -F "include_briefing_card=true" > full_run.json
+  -F "include_briefing_card=true" > mission_result.json
 ```
 
 ---
@@ -424,97 +261,52 @@ curl -sS -X POST http://localhost:8000/api/run-crisisgrid \
 
 ```text
 CrisisGrid/
-├── AGENTS.md                        # Binding architectural rules & official Meta Model API contracts
-├── ROADMAP.md                       # 9-Day Global Frontier Build Plan (Days 1–9 complete)
-├── README.md                        # Judge-ready flagship documentation & 3-minute demo script
+├── AGENTS.md                        # Architectural constraints & Meta Model API rules
+├── ROADMAP.md                       # Engineering build log & phased milestone documentation
+├── README.md                        # Technical documentation & usage guide
+├── SECURITY.md                      # Security policy & credential isolation architecture
 ├── LICENSE                          # MIT License
-├── SECURITY.md                      # MODEL_API_KEY isolation & security policy
-├── .env.example                     # Environment template (MODEL_API_KEY only)
-├── live-flood.jpg                   # Sample disaster street/aerial flood frame
-├── live-flood-overlay.png           # Live sam-3.1 segmentation overlay (green road vs. red flood water)
-├── live-flood-briefing-card.png     # Live muse-image-1.0 tactical briefing schematic from verified state
-├── radio-report.wav                 # Sample 16kHz mono s16le emergency responder radio transmission
+├── live-flood.jpg                   # Sample urban flood scenario image
+├── live-flood-overlay.png           # SAM-3.1 segmentation output
+├── live-flood-briefing-card.png     # Muse-Image-1.0 generated briefing card
+├── radio-report.wav                 # 16kHz mono PCM emergency responder radio recording
 ├── docs/
-│   └── ARCHITECTURE.md              # Deep-dive engineering specification & mathematical proofs
+│   ├── ARCHITECTURE.md              # Deep-dive system specification & mathematical proofs
+│   ├── DEMO_SCRIPT.md               # 3-minute technical demonstration script
+│   └── TIMECODE_EDITING_GUIDE.md    # Video timeline & editing reference
 ├── backend/
-│   ├── README.md                    # Backend setup, 21 endpoints & 8 offline test suites (236 assertions)
-│   ├── main.py                      # FastAPI application (v1.0.0)
-│   ├── modal_app.py                 # Modal.com Serverless ASGI deployment (4 vCPUs, min_containers=1, gpu=None)
-│   ├── config.py                    # Single MODEL_API_KEY loader & AsyncOpenAI client (api.meta.ai/v1)
-│   ├── requirements.txt             # Python dependencies (FastAPI, openai, httpx, Pillow, pydantic)
-│   ├── test_meta_api.py             # Offline parser self-test + optional --live Meta API pings (7 assertions)
-│   ├── test_sam_hazard_scanner.py   # Offline parallel sam-3.1 scanner tests (18 assertions)
-│   ├── test_voice_and_triage.py     # Offline WAV/ASR & Spark triage tests (38 assertions)
-│   ├── test_verifiable_corridor_engine.py # Offline geometry, mask IoU & re-route tests (48 assertions)
-│   ├── test_wonder_commander.py     # Offline dispatch guardrails & pipeline tests (55 assertions)
-│   ├── test_damage_delta.py         # Offline damage delta, clearance & sector tests (24 assertions)
-│   ├── test_presets.py              # Offline preset catalogue & asset tests (25 assertions)
-│   ├── test_usgs_and_modal.py       # Offline USGS live feed & Modal CPU runtime tests (21 assertions)
+│   ├── main.py                      # FastAPI application router & endpoints
+│   ├── config.py                    # Environment configuration & OpenAI SDK client
+│   ├── modal_app.py                 # Modal serverless CPU deployment configuration
+│   ├── requirements.txt             # Python runtime dependencies
+│   ├── test_*.py                    # 8 offline verification test suites (236 assertions)
 │   └── services/
-│       ├── sam_parser.py            # Deterministic regex parser for sam-3.1 <0f>..<|box|><|mask|> output
-│       ├── sam_hazard_scanner.py    # Parallel async sam-3.1 scanner (1 noun phrase per request)
-│       ├── voice_and_triage.py      # muse-voice-transcribe-1.0 ASR + muse-spark-1.3 multimodal triage
-│       ├── verifiable_corridor_engine.py # Pure Python IoU/clearance verifier + OSM + Spark re-route loop
-│       ├── wonder_commander.py      # muse-wonder-1.0 high-effort dispatch + muse-image-1.0 briefing card
-│       ├── damage_delta.py          # Before/after IoU damage delta, post-clearance verifier & sector ranker
-│       └── presets.py               # Global disaster preset catalogue with declared provenance
+│       ├── sam_parser.py            # Regex parser for sam-3.1 output format
+│       ├── sam_hazard_scanner.py    # Parallel single-phrase SAM segmentation engine
+│       ├── voice_and_triage.py      # Radio transcription & multimodal triage
+│       ├── verifiable_corridor_engine.py # Deterministic geometry verifier & OSM lookup
+│       ├── wonder_commander.py      # High-effort dispatch & briefing generator
+│       ├── damage_delta.py          # Damage delta, clearance verification & sector ranker
+│       └── presets.py               # Disaster scenario preset loader
 └── frontend/
-    ├── README.md                    # Next.js Tactical Command UI documentation
-    ├── package.json                 # Next.js 14 (App Router, React 18, TypeScript)
-    ├── public/presets/              # Pre-loaded preset imagery & emergency radio WAV
-    │   ├── urban-flood.jpg
-    │   ├── earthquake-bridge.jpg
-    │   ├── wildfire-helipad.jpg
-    │   └── field-radio.wav
-    ├── app/
-    │   ├── globals.css              # High-contrast Neo-Brutalist Tactical Command styling
-    │   ├── layout.tsx               # Root application layout
-    │   └── page.tsx                 # Full Mission Control dashboard (Steps 1–4, 1-click run, delta, presets)
-    ├── components/
-    │   ├── PresetPanel.tsx          # Day 8 1-click global disaster preset selector (RUN / LOAD ONLY)
-    │   ├── TacticalCanvas.tsx       # Interactive HTML5 Canvas (detections, corridors, LZs, Delta View)
-    │   ├── AgentTrace.tsx           # Live Verifiable Agent Trace with state filters & audit badges
-    │   ├── DispatchConsole.tsx      # Wonder unit table, guardrail audit & inline muse-image-1.0 card
-    │   └── Day7Panels.tsx           # Before/After damage delta, post-clearance flip & multi-sector ranker
-    └── lib/
-        ├── api.ts                   # Strictly typed TypeScript client for all 18 FastAPI endpoints
-        └── presets.ts               # Offline-resilient preset metadata mirror
+    ├── package.json                 # Next.js 14, TypeScript & Tailwind CSS dependencies
+    ├── app/                         # App Router pages and styling
+    ├── components/                  # TacticalCanvas, AgentTrace, DispatchConsole
+    └── lib/                         # Typed API client and helper utilities
 ```
 
 ---
 
-## 👤 Author & Lead Engineer
+## 👤 Author
 
-<div align="center">
-
-### **Samir Baral**
-**Full-Stack & Android Developer • Nepal 🇳🇵**  
-*Bachelor of Information Management (BIM) — Tribhuvan University*
-
-<p align="center">
-  <a href="mailto:baralsamir941@gmail.com"><img src="https://img.shields.io/badge/Email-baralsamir941%40gmail.com-ea4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Email" /></a>
-  <a href="https://github.com/Sameer769dev"><img src="https://img.shields.io/badge/GitHub-Sameer769dev-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" /></a>
-  <a href="https://sameer769dev.github.io/traffic-rule-defense/"><img src="https://img.shields.io/badge/Projects-Live%20Demos-38bdf8?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Projects" /></a>
-</p>
-
-</div>
-
-> *"I am a passionate Full-Stack and Android Developer based in Nepal 🇳🇵 pursuing my Bachelor of Information Management (BIM) at Tribhuvan University.*
->
-> *I enjoy bridging the gap between elegant user interfaces and robust, scalable backend architectures. Whether it's diagnosing high-precision network metrics in native Android apps, engineering interactive web platforms, or designing relational databases, I build with performance, clarity, and user experience in mind."*
-
-- 🔭 **Current Focus:** Engineering native & hybrid mobile applications, game development and full-stack web platforms (Traffic Rule Awareness System).
-- 💡 **Passion Areas:** Mobile Performance Optimization, Network Diagnostics, Clean Architecture, Reactive State Management, and UX Design.
-- 🎓 **Education:** BIM (Bachelor of Information Management), Tribhuvan University.
-- 🌱 **Currently Exploring:** Advanced Kotlin Coroutines/Flow, Jetpack Compose, Distributed Microservices & Cloud Native tools.
-- 💬 **Ask me about:** Android (Kotlin), TypeScript, React, Node.js, REST API design, or SQL schema architecture.
-- ⚡ **Fun Fact:** When I'm not writing code, I love analyzing system performance bottlenecks and exploring slick UI animations!
-
+**Samir Baral**  
+Full-Stack & Android Developer • Nepal 🇳🇵  
+- **GitHub:** [@Sameer769dev](https://github.com/Sameer769dev)  
+- **Email:** [baralsamir941@gmail.com](mailto:baralsamir941@gmail.com)  
+- **Projects & Portfolio:** [sameer769dev.github.io](https://sameer769dev.github.io/traffic-rule-defense/)
 
 ---
 
-<div align="center">
+## 📄 License
 
-Built for the **Meta Global AI Developer Hackathon — "Push the Frontier" (Oct 26 – Nov 4, 2026)** · Licensed under the [MIT License](./LICENSE)
-
-</div>
+This project is licensed under the [MIT License](./LICENSE).
