@@ -44,16 +44,16 @@ When floods, earthquakes, wildfires, or landslides strike, emergency operations 
 flowchart LR
     A["Aerial / Drone Imagery"] --> B["sam-3.1 (9 Parallel Async Requests)"]
     R["Field Radio Audio (WAV)"] --> T["muse-voice-transcribe-1.0 (POST /v1/asr/transcribe)"]
-    T --> S["muse-spark-1.3 (Damage & Urgency Triage)"]
+    T --> S["muse-spark-1.3 (Damage and Urgency Triage)"]
     B --> P["Deterministic Regex Parser (sam_parser.py)"]
     P --> S
-    P --> V{"Deterministic Python Verifier (IoU, Hazard <= 10%, Support >= 50%)"}
+    P --> V{"Deterministic Python Verifier (IoU, Hazard max 10%, Support min 50%)"}
     S -- "Candidate Proposals (Yellow)" --> V
     O["OpenStreetMap Overpass API (Emergency Services)"] --> V
-    V -- "REJECTED (Red): Hazard Intersected -> Re-Route Request" --> S
+    V -- "REJECTED (Red): Hazard Intersected (Re-Route)" --> S
     V -- "VERIFIED (Green): Pre-Gate Constraint" --> W["muse-wonder-1.0 (High-Effort Multi-Unit Dispatch)"]
     W --> I["muse-image-1.0 (Tactical Field Briefing Card)"]
-    P --> D["Damage Delta & Post-Clearance Engine"]
+    P --> D["Damage Delta and Post-Clearance Engine"]
     D --> V
     V --> UI["Next.js Tactical Command UI"]
     W --> UI
@@ -84,20 +84,20 @@ sequenceDiagram
         API->>ASR: POST /v1/asr/transcribe (16kHz mono s16le WAV)
         ASR-->>API: Decoded emergency field radio transcript
     end
-    API->>API: Parse boxes and masks via regex; strip raw RLE for prompt
+    API->>API: Parse boxes and masks via regex, strip raw RLE
     API->>Spark: Transcripts + Image + Grounded Spatial Summary
-    Spark-->>API: Urgency Score + Candidate Corridors & LZs (status: unverified_candidate)
-    API->>Verifier: Evaluate candidates against hazard & infrastructure masks
-    alt Candidate Hazard Contact > 10% or Support < 50%
+    Spark-->>API: Urgency Score + Candidate Corridors and LZs (status: unverified_candidate)
+    API->>Verifier: Evaluate candidates against hazard and infrastructure masks
+    alt Candidate Hazard Contact over 10% or Support under 50%
         Verifier-->>API: REJECTED + Exact geometric proof (IoU, collision coordinates)
         API->>Spark: Bounded Re-Route Request with Verifier Collision Data (max 2 attempts)
-        Spark-->>API: Revised Corridor & Landing Zone Coordinates
+        Spark-->>API: Revised Corridor and Landing Zone Coordinates
         API->>Verifier: Re-evaluate revised coordinates (pure Python math)
     end
     Verifier-->>API: VERIFIED Candidates (status: verified)
-    API->>Wonder: Pre-gated verified geometry -> muse-wonder-1.0 (reasoning: high)
+    API->>Wonder: Pre-gated verified geometry to muse-wonder-1.0 (high reasoning)
     Wonder-->>API: Multi-unit dispatch protocol (checked by post-generation guardrail)
-    API->>Image: Facts-only prompt -> muse-image-1.0
+    API->>Image: Facts-only prompt to muse-image-1.0
     Image-->>API: Generated Tactical Briefing Card PNG
     API-->>UI: Complete Mission State + Verifiable Agent Trace
 ```
